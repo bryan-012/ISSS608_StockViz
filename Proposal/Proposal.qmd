@@ -9,8 +9,8 @@ date-modified: "last-modified"
 
 ## Project Objectives
 
-1. To create an app to keep track of personal stock portfolio.
-2. To create an app that allows technical analysis and possibly forecasting.
+1.  To create an app to keep track of personal stock portfolio.
+2.  To create an app that allows technical analysis and possibly forecasting.
 
 ## Data
 
@@ -24,15 +24,14 @@ This project will use real-life stock dataset from Yahoo Finance.
 
 ## Shiny App Features
 
-## R Packages 
+## R Packages
 
-- tidyverse
-- dplyr
-- plotly
+-   tidyverse
+-   dplyr
+-   plotly
 
 ## Project Schedule
 
 Project timeline
 
-1st Meeting: 05th March 2025 9-10pm
-1st Draft Proposal: 10th March 2025 9-10pm
+1st Meeting: 05th March 2025 9-10pm 1st Draft Proposal: 10th March 2025 9-10pm
