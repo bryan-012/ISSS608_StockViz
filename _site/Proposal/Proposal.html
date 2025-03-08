@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Bryan &amp; Justin">
+<meta name="dcterms.date" content="2025-03-03">
 
-<title>ISS608 Group Project StockViz – ISSS608- Stock Viz</title>
+<title>Proposal – ISSS608- Stock Viz</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,22 +25,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -78,7 +80,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">ISSS608- Stock Viz</span>
     </a>
   </div>
@@ -93,10 +95,14 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Proposal</span>
     </span>
   </li>  
+  <li class="nav-item compact">
+    <a class="nav-link active" href="../Proposal/Proposal.html" aria-current="page"> 
+<span class="menu-text"></span></a>
+  </li>  
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
 </ul>
@@ -110,23 +116,57 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#project-proposal-stockviz" id="toc-project-proposal-stockviz" class="nav-link active" data-scroll-target="#project-proposal-stockviz">Project Proposal: StockViz</a>
+  <ul class="collapse">
+  <li><a href="#project-objectives" id="toc-project-objectives" class="nav-link" data-scroll-target="#project-objectives">Project Objectives</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#methodology-analytical-approach" id="toc-methodology-analytical-approach" class="nav-link" data-scroll-target="#methodology-analytical-approach">Methodology &amp; Analytical Approach</a></li>
+  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement">Problem Statement</a></li>
+  <li><a href="#prototype-sketches" id="toc-prototype-sketches" class="nav-link" data-scroll-target="#prototype-sketches">Prototype Sketches</a></li>
+  <li><a href="#shiny-app-features" id="toc-shiny-app-features" class="nav-link" data-scroll-target="#shiny-app-features">Shiny App Features</a></li>
+  <li><a href="#r-packages" id="toc-r-packages" class="nav-link" data-scroll-target="#r-packages">R Packages</a></li>
+  <li><a href="#project-schedule" id="toc-project-schedule" class="nav-link" data-scroll-target="#project-schedule">Project Schedule</a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">ISS608 Group Project StockViz</h1>
+<h1 class="title">Proposal</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bryan &amp; Justin </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 3, 2025</p>
+    </div>
+  </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">March 9, 2025</p>
+    </div>
+  </div>
     
   </div>
   
@@ -135,9 +175,47 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Hello</p>
+<section id="project-proposal-stockviz" class="level1">
+<h1>Project Proposal: StockViz</h1>
+<section id="project-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="project-objectives">Project Objectives</h2>
+<ol type="1">
+<li>To create an app to keep track of personal stock portfolio.</li>
+<li>To create an app that allows technical analysis and possibly forecasting.</li>
+</ol>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<p>This project will use real-life stock dataset from Yahoo Finance.</p>
+</section>
+<section id="methodology-analytical-approach" class="level2">
+<h2 class="anchored" data-anchor-id="methodology-analytical-approach">Methodology &amp; Analytical Approach</h2>
+</section>
+<section id="problem-statement" class="level2">
+<h2 class="anchored" data-anchor-id="problem-statement">Problem Statement</h2>
+</section>
+<section id="prototype-sketches" class="level2">
+<h2 class="anchored" data-anchor-id="prototype-sketches">Prototype Sketches</h2>
+</section>
+<section id="shiny-app-features" class="level2">
+<h2 class="anchored" data-anchor-id="shiny-app-features">Shiny App Features</h2>
+</section>
+<section id="r-packages" class="level2">
+<h2 class="anchored" data-anchor-id="r-packages">R Packages</h2>
+<ul>
+<li>tidyverse</li>
+<li>dplyr</li>
+<li>plotly</li>
+</ul>
+</section>
+<section id="project-schedule" class="level2">
+<h2 class="anchored" data-anchor-id="project-schedule">Project Schedule</h2>
+<p>Project timeline</p>
+<p>1st Meeting: 05th March 2025 9-10pm 1st Draft Proposal: 10th March 2025 9-10pm</p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
