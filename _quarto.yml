@@ -1,5 +1,20 @@
 project:
-  title: "ISSS608_StockViz"
+  type: website
+
+website:
+  title: "ISSS608- Stock Viz"
+  navbar:
+    left:
+      - text: "Proposal"
+      
+    right:
+      - href: index.qmd
+        text: Home
+
+format:
+  html:
+    theme: default
+    css: styles.css
+    toc: true
 
 editor: visual
-
