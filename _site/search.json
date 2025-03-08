@@ -4,14 +4,14 @@
     "href": "ISSS608_StockViz.html",
     "title": "ISSS608_StockViz",
     "section": "",
-    "text": "Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see https://quarto.org.\n\n1 + 1\n\n[1] 2"
+    "text": "Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see https://quarto.org.\n\n1 + 1\n\n[1] 2\n\n\nHi, testing testing"
   },
   {
     "objectID": "ISSS608_StockViz.html#quarto",
     "href": "ISSS608_StockViz.html#quarto",
     "title": "ISSS608_StockViz",
     "section": "",
-    "text": "Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see https://quarto.org.\n\n1 + 1\n\n[1] 2"
+    "text": "Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see https://quarto.org.\n\n1 + 1\n\n[1] 2\n\n\nHi, testing testing"
   },
   {
     "objectID": "index.html",
@@ -19,5 +19,40 @@
     "title": "ISS608 Group Project StockViz",
     "section": "",
     "text": "Hello"
+  },
+  {
+    "objectID": "Proposal/Proposal.html",
+    "href": "Proposal/Proposal.html",
+    "title": "Proposal",
+    "section": "",
+    "text": "To create an app to keep track of personal stock portfolio.\nTo create an app that allows technical analysis and possibly forecasting.\n\n\n\n\nThis project will use real-life stock dataset from Yahoo Finance.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\ntidyverse\ndplyr\nplotly\n\n\n\n\nProject timeline\n1st Meeting: 05th March 2025 9-10pm 1st Draft Proposal: 10th March 2025 9-10pm"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#project-objectives",
+    "href": "Proposal/Proposal.html#project-objectives",
+    "title": "Proposal",
+    "section": "",
+    "text": "To create an app to keep track of personal stock portfolio.\nTo create an app that allows technical analysis and possibly forecasting."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#data",
+    "href": "Proposal/Proposal.html#data",
+    "title": "Proposal",
+    "section": "",
+    "text": "This project will use real-life stock dataset from Yahoo Finance."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#r-packages",
+    "href": "Proposal/Proposal.html#r-packages",
+    "title": "Proposal",
+    "section": "",
+    "text": "tidyverse\ndplyr\nplotly"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#project-schedule",
+    "href": "Proposal/Proposal.html#project-schedule",
+    "title": "Proposal",
+    "section": "",
+    "text": "Project timeline\n1st Meeting: 05th March 2025 9-10pm 1st Draft Proposal: 10th March 2025 9-10pm"
   }
 ]
