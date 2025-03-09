@@ -1,36 +1,37 @@
 ---
-title: "Proposal"
+title: "Project Proposal: StockViz"
 author: "Bryan & Justin"
 date: "March 03, 2025"
 date-modified: "last-modified" 
 ---
 
-# Project Proposal: StockViz
+# Project Overview & Motivation
 
-## Project Overview & Motivation
-
-Investors and traders often struggle with tracking their stock portfolio efficiently, especially when using multiple sources to monitor performance, technical indicators, and forecasts. Many existing platforms offer complex interfaces, overwhelming users with excessive data and advanced financial tools that are not always necessary for retail investors. 
+Investors and traders often struggle with tracking their stock portfolio efficiently, especially when using multiple sources to monitor performance, technical indicators, and forecasts. Many existing platforms offer complex interfaces, overwhelming users with excessive data and advanced financial tools that are not always necessary for retail investors.
 
 The goal of this project is to develop a simple and user-friendly stock portfolio tracking and analysis app using R Shiny. The app will allow users to:
 
 1.  Add and track stocks in their portfolio.
 2.  View interactive visualizations of stock prices and performance.
-3. Perform basic technical analysis, such as Exponential Moving Averages (EMA).
-4. Forecast future trends based on historical data.
-5. Keep the interface lightweight and intuitive, making it accessible to casual investors who wan a hassle-free experience.
+3.  Perform basic technical analysis, such as Exponential Moving Averages (EMA).
+4.  Forecast future trends based on historical data.
+5.  Keep the interface lightweight and intuitive, making it accessible to casual investors who wan a hassle-free experience.
 
-## Problem statement
+# Problem statement
 
 Tracking a stock portfolio efficiently is often challenging due to :
 
-1. Overly Complex Tools
+1.  Overly Complex Tools
+
 -   Many stock tracking platforms are designed for professional traders, making them too advanced for retail investors.
 -   Many free platforms lack integration of technical analysis tools like EMA in a simple manner.
 
-2. Lack of Personalization
+2.  Lack of Personalization
+
 -   If users do not use such app, they often have to manually enter their stocks into spreadsheets to keep track of their portfolio especially if they use multiple trading platforms.
 
-3. No Forecasting & Basic Technical Analysis
+3.  No Forecasting & Basic Technical Analysis
+
 -   Many free tools do not provide predictive insights, such as EMA-based signals or basic forecasting.
 
 How Our App Solves These Problems
@@ -43,34 +44,63 @@ How Our App Solves These Problems
 
 ✔Custom Portfolio Tracking: Users can add and remove stocks.
 
-## Data
+# Data
 
-This project will use real-life stock dataset from Yahoo Finance.
+This project will utilize the tidyquant package to get access to the stock data whether real time or historical. It will connect us with financial and economic data from sources such as Yahoo! Finance, Alpha Vantage, FRED (Federal Reserve Economic Data), Bloomberg etc.
 
-- Free
-- Impressive range of data
-- Quick and easy to set up
+# Methodology Approach
 
-## Methodology & Analytical Approach
+## Data Preparation
 
-## Problem Statement
+1.  Data Collection & Integration
+    -   Retrieve stock price and trading volume data using tidyquant
 
+    -   Standardize stock ticker formats and ensure consistency across multiple sources
+2.  Data Cleaning & Processing
+    -   Handle any missing values, remove duplicates and format timestamps
 
+    -   Shape the data so it is ready to be used for time-series or comparative analysis when user inputs their stock
+3.  Feature Engineering
+    -   Compute our indicators such as MA, EMA, volatility measures, momentum indicators etc.
 
-## Prototype Sketches
+    -   Calculate portfolio returns, profit/loss, top 5 investments etc
 
-### Portfolio Dashboard
-Users are able to see an overview of their current portfolio.
-Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments.
+## Portfolio Management and Stock Analysis
+
+1.  Stock Portfolio
+    -   Users can input stock holdings, including ticker symbols, quantity, and purchase price
+
+    -   Display real-time portfolio value, daily changes, profit/loss calculations
+
+    -   Interactive time sliders to allow users to adjust the time range of analysis
+
+    -   Provide visualizations of portfolio allocation using pie charts and performance graphs
+2.  Stock Analysis
+    -   Users can search and select stocks to view detailed performance insights
+
+    -   Display historical stock price trends with line charts
+
+    -   Provide indicators including EMA, SMA, RSI and Bollinger Bands for trend analysis
+
+    -   Heatmap to show trading volume variations
+
+    -   Using time series analysis methods to visualize different historical patterns
+
+# Prototype Sketches
+
+## Portfolio Dashboard
+
+Users are able to see an overview of their current portfolio. Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments.
 
 ```{r}
 #| echo: false
 
 knitr::include_graphics("p1.png")
 ```
-### Portforlio Manager
-Users will use this to add or remove stocks in their portfolio.
-They will be able to view all the stocks in their portfolio on the right.
+
+## Portfolio Manager
+
+Users will use this to add or remove stocks in their portfolio. They will be able to view all the stocks in their portfolio on the right.
 
 ```{r}
 #| echo: false
@@ -78,30 +108,44 @@ They will be able to view all the stocks in their portfolio on the right.
 knitr::include_graphics("p2.png")
 ```
 
+## Stock Analysis
 
-## Shiny App Features
+Users will be able to select the stocks they want to analyse, timeframe of the main line chart and indicators they would like to see on the main line chart. They will be able to see the main line chart of stock trends alongside stock data (open, close, high, low etc) and 2 time series visualizations of historical patterns.
 
-- User can add/remove stocks to their portfolio
-- Track Profit and Loss
-- Explore new stocks
+```{r}
+#| echo: false
 
+knitr::include_graphics("p3.png")
+```
 
-## R Packages
+## Trading volume
 
--   shiny: For web app framework
--   tidyverse: For data manipulation
--   dplyr: 
--   plotly: For interactive charts
-_   quantmod: For fetching stock market data
--   tidyquant: For fetching stock market data
--   DT: For displaying tables
--   PerformanceAnalytics: For portfolio analysis
--   TTR: for techinical indicators
+Users will be able to select the stocks they want to analyse and the timeframe range and a heatmap showing the trading volume will be visible on the right.
 
-## Project Schedule
+```{r}
+#| echo: false
+
+knitr::include_graphics("p4.png")
+```
+
+# R Packages
+
+| Package | Use |
+|------------------------------------|------------------------------------|
+| shint | web application framework |
+| tidyverse | collection of R packages for data manipulation and visulization |
+| dplyr | part of tidyverse, use for data manipulation and wrangling |
+| plotly | for interactive visualizations |
+| quantmod | for retrieving and modling financial stock market data |
+| tidyquant | integrating tidyverse principles into quantitative financial analysis |
+| dt | interactive, dynamic tables in Shint |
+| PerformanceAnalytics | For portfolio analysis |
+| TTR | for technical indicators |
+
+# Project Schedule
 
 Project timeline
 
-1st Meeting: 05th March 2025 9-10pm 
+1st Meeting: 05th March 2025 9-10pm
 
 1st Draft Proposal: 10th March 2025 9-10pm

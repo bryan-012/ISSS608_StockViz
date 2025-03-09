@@ -2,4 +2,4 @@
 title: "ISS608 Group Project StockViz"
 ---
 
-Hello
+Welcome to our StockViz app !

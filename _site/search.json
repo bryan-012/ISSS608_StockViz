@@ -18,14 +18,14 @@
     "href": "index.html",
     "title": "ISS608 Group Project StockViz",
     "section": "",
-    "text": "Hello"
+    "text": "Welcome to our StockViz app !"
   },
   {
     "objectID": "Proposal/Proposal.html",
     "href": "Proposal/Proposal.html",
-    "title": "Proposal",
+    "title": "Project Proposal: StockViz",
     "section": "",
-    "text": "Investors and traders often struggle with tracking their stock portfolio efficiently, especially when using multiple sources to monitor performance, technical indicators, and forecasts. Many existing platforms offer complex interfaces, overwhelming users with excessive data and advanced financial tools that are not always necessary for retail investors.\nThe goal of this project is to develop a simple and user-friendly stock portfolio tracking and analysis app using R Shiny. The app will allow users to:\n\nAdd and track stocks in their portfolio.\nView interactive visualizations of stock prices and performance.\nPerform basic technical analysis, such as Exponential Moving Averages (EMA).\nForecast future trends based on historical data.\nKeep the interface lightweight and intuitive, making it accessible to casual investors who wan a hassle-free experience.\n\n\n\n\nTracking a stock portfolio efficiently is often challenging due to :\n\nOverly Complex Tools\n\n\nMany stock tracking platforms are designed for professional traders, making them too advanced for retail investors.\nMany free platforms lack integration of technical analysis tools like EMA in a simple manner.\n\n\nLack of Personalization\n\n\nIf users do not use such app, they often have to manually enter their stocks into spreadsheets to keep track of their portfolio especially if they use multiple trading platforms.\n\n\nNo Forecasting & Basic Technical Analysis\n\n\nMany free tools do not provide predictive insights, such as EMA-based signals or basic forecasting.\n\nHow Our App Solves These Problems\n✔User-friendly Interface: Simple and interactive dashboard for tracking portfolio performance.\n✔Technical Analysis Tools: Integration of EMA, SMA, and trend analysis.\n✔Forecasting Feature: Users can apply time-series forecasting models for price trends.\n✔Custom Portfolio Tracking: Users can add and remove stocks.\n\n\n\nThis project will use real-life stock dataset from Yahoo Finance.\n\nFree\nImpressive range of data\nQuick and easy to set up\n\n\n\n\n\n\n\n\n\n\n\n\nUsers are able to see an overview of their current portfolio. Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments.\n\n\n\n\n\n\n\n\n\n\n\n\nUsers will use this to add or remove stocks in their portfolio. They will be able to view all the stocks in their portfolio on the right.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nUser can add/remove stocks to their portfolio\nTrack Profit and Loss\nExplore new stocks\n\n\n\n\n\nshiny: For web app framework\ntidyverse: For data manipulation\ndplyr:\nplotly: For interactive charts _ quantmod: For fetching stock market data\ntidyquant: For fetching stock market data\nDT: For displaying tables\nPerformanceAnalytics: For portfolio analysis\nTTR: for techinical indicators\n\n\n\n\nProject timeline\n1st Meeting: 05th March 2025 9-10pm\n1st Draft Proposal: 10th March 2025 9-10pm"
+    "text": "Investors and traders often struggle with tracking their stock portfolio efficiently, especially when using multiple sources to monitor performance, technical indicators, and forecasts. Many existing platforms offer complex interfaces, overwhelming users with excessive data and advanced financial tools that are not always necessary for retail investors.\nThe goal of this project is to develop a simple and user-friendly stock portfolio tracking and analysis app using R Shiny. The app will allow users to:\n\nAdd and track stocks in their portfolio.\nView interactive visualizations of stock prices and performance.\nPerform basic technical analysis, such as Exponential Moving Averages (EMA).\nForecast future trends based on historical data.\nKeep the interface lightweight and intuitive, making it accessible to casual investors who wan a hassle-free experience."
   },
   {
     "objectID": "Proposal/Proposal.html#project-objectives",
@@ -39,14 +39,14 @@
     "href": "Proposal/Proposal.html#data",
     "title": "Proposal",
     "section": "",
-    "text": "This project will use real-life stock dataset from Yahoo Finance.\n\nFree\nImpressive range of data\nQuick and easy to set up"
+    "text": "This project will utilize the tidyquant package to get access to the stock data whether real time or historical. It will connect us with financial and economic data from sources such as Yahoo! Finance, Alpha Vantage, FRED (Federal Reserve Economic Data), Bloomberg etc."
   },
   {
     "objectID": "Proposal/Proposal.html#r-packages",
     "href": "Proposal/Proposal.html#r-packages",
     "title": "Proposal",
     "section": "",
-    "text": "shiny: For web app framework\ntidyverse: For data manipulation\ndplyr:\nplotly: For interactive charts _ quantmod: For fetching stock market data\ntidyquant: For fetching stock market data\nDT: For displaying tables\nPerformanceAnalytics: For portfolio analysis\nTTR: for techinical indicators"
+    "text": "Package\nUse\n\n\n\n\nshint\nweb application framework\n\n\ntidyverse\ncollection of R packages for data manipulation and visulization\n\n\ndplyr\npart of tidyverse, use for data manipulation and wrangling\n\n\nplotly\nfor interactive visualizations\n\n\nquantmod\nfor retrieving and modling financial stock market data\n\n\ntidyquant\nintegrating tidyverse principles into quantitative financial analysis\n\n\ndt\ninteractive, dynamic tables in Shint\n\n\nPerformanceAnalytics\nFor portfolio analysis\n\n\nTTR\nfor technical indicators"
   },
   {
     "objectID": "Proposal/Proposal.html#project-schedule",
@@ -74,7 +74,7 @@
     "href": "Proposal/Proposal.html#prototype-sketches",
     "title": "Proposal",
     "section": "",
-    "text": "Users are able to see an overview of their current portfolio. Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments.\n\n\n\n\n\n\n\n\n\n\n\n\nUsers will use this to add or remove stocks in their portfolio. They will be able to view all the stocks in their portfolio on the right."
+    "text": "Users are able to see an overview of their current portfolio. Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments.\n\n\n\n\n\n\n\n\n\n\n\n\nUsers will use this to add or remove stocks in their portfolio. They will be able to view all the stocks in their portfolio on the right.\n\n\n\n\n\n\n\n\n\n\n\n\nUsers will be able to select the stocks they want to analyse, timeframe of the main line chart and indicators they would like to see on the main line chart. They will be able to see the main line chart of stock trends alongside stock data (open, close, high, low etc) and 2 time series visualizations of historical patterns.\n\n\n\n\n\n\n\n\n\n\n\n\nUsers will be able to select the stocks they want to analyse and the timeframe range and a heatmap showing the trading volume will be visible on the right."
   },
   {
     "objectID": "Proposal/Proposal.html#shiny-app-features",
@@ -82,5 +82,54 @@
     "title": "Proposal",
     "section": "",
     "text": "User can add/remove stocks to their portfolio\nTrack Profit and Loss\nExplore new stocks"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#methodology-approach",
+    "href": "Proposal/Proposal.html#methodology-approach",
+    "title": "Proposal",
+    "section": "",
+    "text": "Data Collection & Integration\n\nRetrieve stock price and trading volume data using tidyquant\nStandardize stock ticker formats and ensure consistency across multiple sources\n\nData Cleaning & Processing\n\nHandle any missing values, remove duplicates and format timestamps\nShape the data so it is ready to be used for time-series or comparative analysis when user inputs their stock\n\nFeature Engineering\n\nCompute our indicators such as MA, EMA, volatility measures, momentum indicators etc.\nCalculate portfolio returns, profit/loss, top 5 investments etc\n\n\n\n\n\n\nStock Portfolio\n\nUsers can input stock holdings, including ticker symbols, quantity, and purchase price\nDisplay real-time portfolio value, daily changes, profit/loss calculations\nInteractive time sliders to allow users to adjust the time range of analysis\nProvide visualizations of portfolio allocation using pie charts and performance graphs\n\nStock Analysis\n\nUsers can search and select stocks to view detailed performance insights\nDisplay historical stock price trends with line charts\nProvide indicators including EMA, SMA, RSI and Bollinger Bands for trend analysis\nHeatmap to show trading volume variations\nUsing time series analysis methods to visualize different historical patterns"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#data-preparation",
+    "href": "Proposal/Proposal.html#data-preparation",
+    "title": "Project Proposal: StockViz",
+    "section": "Data Preparation",
+    "text": "Data Preparation\n\nData Collection & Integration\n\nRetrieve stock price and trading volume data using tidyquant\nStandardize stock ticker formats and ensure consistency across multiple sources\n\nData Cleaning & Processing\n\nHandle any missing values, remove duplicates and format timestamps\nShape the data so it is ready to be used for time-series or comparative analysis when user inputs their stock\n\nFeature Engineering\n\nCompute our indicators such as MA, EMA, volatility measures, momentum indicators etc.\nCalculate portfolio returns, profit/loss, top 5 investments etc"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#portfolio-management-and-stock-analysis",
+    "href": "Proposal/Proposal.html#portfolio-management-and-stock-analysis",
+    "title": "Project Proposal: StockViz",
+    "section": "Portfolio Management and Stock Analysis",
+    "text": "Portfolio Management and Stock Analysis\n\nStock Portfolio\n\nUsers can input stock holdings, including ticker symbols, quantity, and purchase price\nDisplay real-time portfolio value, daily changes, profit/loss calculations\nInteractive time sliders to allow users to adjust the time range of analysis\nProvide visualizations of portfolio allocation using pie charts and performance graphs\n\nStock Analysis\n\nUsers can search and select stocks to view detailed performance insights\nDisplay historical stock price trends with line charts\nProvide indicators including EMA, SMA, RSI and Bollinger Bands for trend analysis\nHeatmap to show trading volume variations\nUsing time series analysis methods to visualize different historical patterns"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#portfolio-dashboard",
+    "href": "Proposal/Proposal.html#portfolio-dashboard",
+    "title": "Project Proposal: StockViz",
+    "section": "Portfolio Dashboard",
+    "text": "Portfolio Dashboard\nUsers are able to see an overview of their current portfolio. Some insights they are able to gain are their current portfolio value, profit and loss, and top 5 investments."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#portfolio-manager",
+    "href": "Proposal/Proposal.html#portfolio-manager",
+    "title": "Project Proposal: StockViz",
+    "section": "Portfolio Manager",
+    "text": "Portfolio Manager\nUsers will use this to add or remove stocks in their portfolio. They will be able to view all the stocks in their portfolio on the right."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#stock-analysis",
+    "href": "Proposal/Proposal.html#stock-analysis",
+    "title": "Project Proposal: StockViz",
+    "section": "Stock Analysis",
+    "text": "Stock Analysis\nUsers will be able to select the stocks they want to analyse, timeframe of the main line chart and indicators they would like to see on the main line chart. They will be able to see the main line chart of stock trends alongside stock data (open, close, high, low etc) and 2 time series visualizations of historical patterns."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#trading-volume",
+    "href": "Proposal/Proposal.html#trading-volume",
+    "title": "Project Proposal: StockViz",
+    "section": "Trading volume",
+    "text": "Trading volume\nUsers will be able to select the stocks they want to analyse and the timeframe range and a heatmap showing the trading volume will be visible on the right."
   }
 ]
