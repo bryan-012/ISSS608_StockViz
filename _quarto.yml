@@ -5,10 +5,8 @@ website:
   title: "ISSS608- Stock Viz"
   navbar:
     left:
-      - text: "Proposal"
-        menu: 
-          - text: "Proposal"
           - href: "Proposal/Proposal.html"
+            text: "Proposal"
       
     right:
       - href: index.qmd
@@ -16,7 +14,7 @@ website:
 
 format:
   html:
-    theme: default
+    theme: cosmo
     css: styles.css
     toc: true
 
