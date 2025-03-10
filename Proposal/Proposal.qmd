@@ -146,6 +146,43 @@ knitr::include_graphics("p4.png")
 
 Project timeline
 
+```{r}
+#| echo: false
+pacman::p_load(ggplot2, plotly)
+```
+
+```{r}
+#| echo: false
+tasks <- data.frame(
+  Task = c("Planning & Research", "Design", "Development", "Testing", "Deployment"),
+  Start = as.Date(c("2025-02-22", "2025-03-05", "2025-03-15", "2025-03-22", "2025-03-28")),
+  End = as.Date(c("2025-03-05", "2025-03-15", "2025-03-22", "2025-03-28", "2025-04-06")),
+  Description = c(
+    "Define scope and research on project topics",
+    "List down project objectives, create sketch, and design UI/UX",
+    "Develop core features, backend integration",
+    "Test functionalities, fix bugs, QA checks",
+    "Deploy app and website, publish to Netlify, get friends & family to test the app and monitor feedback"
+  )
+)
+
+# Plot using ggplot2
+p <- ggplot(tasks, aes(x = Start, xend = End, y = Task, yend = Task,
+                       text = paste0("<b>Task:</b> ", Task,
+                                     "<br><b>Start:</b> ", Start,
+                                     "<br><b>End:</b> ", End,
+                                     "<br><b>Description:</b> ", Description))) +
+  geom_segment(linewidth = 8, color = "steelblue") +
+  labs(title = "Project Schedule Gantt Chart",
+       x = "Date", y = "Task") +
+  theme_minimal()
+
+# Convert to interactive Plotly chart
+ggplotly(p, tooltip = "text")
+```
+
+Group Meetings:
+
 1st Meeting: 05th March 2025 9-10pm
 
 1st Draft Proposal: 10th March 2025 9-10pm
