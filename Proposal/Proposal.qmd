@@ -131,7 +131,7 @@ knitr::include_graphics("p4.png")
 # R Packages
 
 | Package | Use |
-|------------------------------------|------------------------------------|
+|----|----|
 | shint | web application framework |
 | tidyverse | collection of R packages for data manipulation and visulization |
 | dplyr | part of tidyverse, use for data manipulation and wrangling |

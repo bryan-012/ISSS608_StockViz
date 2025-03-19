@@ -131,5 +131,117 @@
     "title": "Project Proposal: StockViz",
     "section": "Trading volume",
     "text": "Trading volume\nUsers will be able to select the stocks they want to analyse and the timeframe range and a heatmap showing the trading volume will be visible on the right."
+  },
+  {
+    "objectID": "Prototype/forecasting.html",
+    "href": "Prototype/forecasting.html",
+    "title": "Time Series Forecasting",
+    "section": "",
+    "text": "Forecasting the stock market is a very complex task that involves analyzing the movements of past stock prices to predict future trends. Although there are many other external factors eg. political, economical, global events etc that could heavily impact the stock prices, our goal here is to only find the best prediction based on previous past trends.\nThis guide will provide an in-depth approach to stock market forecasting using R and the Modeltime framework, which integrates time series models with machine learning methods.\nThis guide aims to cover:\n\nExploratory Data Analysis (EDA) for understanding the time series data\nPreprocessing & Feature Engineering for model improvement\nModel Selection and Optimization, leveraging the many forecasting models we have\nComparative Model Evaluation to select the best predictive framework\nInteractive Data Visualization to analyze and interpret results."
+  },
+  {
+    "objectID": "Prototype/forecasting.html#importing-libraries",
+    "href": "Prototype/forecasting.html#importing-libraries",
+    "title": "Time Series Forecasting",
+    "section": "3.1 Importing Libraries",
+    "text": "3.1 Importing Libraries\n\n\n\nLibrary\nUse case\n\n\n\n\ntidymodels\nML framework\n\n\ntimetk\nTime series feature engineering\n\n\nmodeltime\nForecasting framework\n\n\nquantmod\nFetch stock data\n\n\nlubridate\nDate-time manipulation\n\n\nplotly\nInteractive Visualization\n\n\nxgboost\nGradient boosting model\n\n\nrandomForest\nRandom Forest model\n\n\nkeras\nDeep Learning (LSTM)\n\n\ntidyverse\nData Manipulation and Visualization\n\n\n\n\nlibrary(tidyverse)      \nlibrary(tidymodels)      \nlibrary(timetk)       \nlibrary(modeltime)       \nlibrary(quantmod)      \nlibrary(lubridate)       \nlibrary(plotly)         \nlibrary(xgboost)        \nlibrary(randomForest)   \nlibrary(keras) \nlibrary(tidyquant)"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#fetching-and-preparing-stock-data",
+    "href": "Prototype/forecasting.html#fetching-and-preparing-stock-data",
+    "title": "Time Series Forecasting",
+    "section": "3.2 Fetching and Preparing Stock Data",
+    "text": "3.2 Fetching and Preparing Stock Data\nOur stock data will be retrieved from Yahoo Finance using quantmod. We focus on closing prices, which will serve as the primary target variable in our forecasting.\nLet us start by using the tq_get() function to see how the data is structured and what columns are available.\n\n\nShow the code\ntq_get(\"AAPL\")\n\n\n# A tibble: 2,567 × 8\n   symbol date        open  high   low close    volume adjusted\n   &lt;chr&gt;  &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;\n 1 AAPL   2015-01-02  27.8  27.9  26.8  27.3 212818400     24.3\n 2 AAPL   2015-01-05  27.1  27.2  26.4  26.6 257142000     23.6\n 3 AAPL   2015-01-06  26.6  26.9  26.2  26.6 263188400     23.6\n 4 AAPL   2015-01-07  26.8  27.0  26.7  26.9 160423600     24.0\n 5 AAPL   2015-01-08  27.3  28.0  27.2  28.0 237458000     24.9\n 6 AAPL   2015-01-09  28.2  28.3  27.6  28.0 214798000     24.9\n 7 AAPL   2015-01-12  28.1  28.2  27.2  27.3 198603200     24.3\n 8 AAPL   2015-01-13  27.9  28.2  27.2  27.6 268367600     24.5\n 9 AAPL   2015-01-14  27.3  27.6  27.1  27.5 195826400     24.4\n10 AAPL   2015-01-15  27.5  27.5  26.7  26.7 240056000     23.8\n# ℹ 2,557 more rows\n\n\nWe will take data from the last 2 years so that our model will learn from the most up-to-date patterns and trends.\n\nstock_symbol &lt;- \"AAPL\"\nstart_date &lt;- Sys.Date() - 730\nend_date &lt;- Sys.Date()\n\nstock_data &lt;- tq_get(stock_symbol, from= start_date, to= end_date)\n\nstock_tbl &lt;- stock_data %&gt;%\n  select(date, close) %&gt;%\n  rename(Date= date, Value= close)"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#summary-statistics",
+    "href": "Prototype/forecasting.html#summary-statistics",
+    "title": "Time Series Forecasting",
+    "section": "4.1 Summary Statistics",
+    "text": "4.1 Summary Statistics\n\n\nShow the code\nsummary(stock_tbl)\n\n\n      Date                Value      \n Min.   :2023-03-20   Min.   :157.4  \n 1st Qu.:2023-09-18   1st Qu.:177.2  \n Median :2024-03-18   Median :190.7  \n Mean   :2024-03-16   Mean   :199.1  \n 3rd Qu.:2024-09-16   3rd Qu.:225.0  \n Max.   :2025-03-18   Max.   :259.0  \n\n\n\n\n\n\n\n\nInsights\n\n\n\nThere seems to have a big range between the min and max, we should take this volatility into account when doing our forecasting"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#distribution",
+    "href": "Prototype/forecasting.html#distribution",
+    "title": "Time Series Forecasting",
+    "section": "4.2 Distribution",
+    "text": "4.2 Distribution\n\n\nShow the code\nstock_tbl %&gt;%\n  ggplot(aes(x = Value)) +\n  geom_histogram(fill = \"blue\", bins = 30, alpha = 0.7) +\n  theme_minimal() +\n  ggtitle(\"Stock Price Distribution\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\nThe distribution is not normally distributed, using non-linear models would be better in our forecasting, such as LSTM, XGBoost or Prophet."
+  },
+  {
+    "objectID": "Prototype/forecasting.html#outliers",
+    "href": "Prototype/forecasting.html#outliers",
+    "title": "Time Series Forecasting",
+    "section": "4.3 Outliers",
+    "text": "4.3 Outliers\n\n\nShow the code\nstock_tbl %&gt;%\n  ggplot(aes(y = Value)) +\n  geom_boxplot(fill = \"red\", alpha = 0.5) +\n  theme_minimal() +\n  ggtitle(\"Stock Price Outliers\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\nThere are no extreme outliers which is good but as mentioned above the IQR is large which suggests stock price fluctuations"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#time-series-decomposition",
+    "href": "Prototype/forecasting.html#time-series-decomposition",
+    "title": "Time Series Forecasting",
+    "section": "4.4 Time Series Decomposition",
+    "text": "4.4 Time Series Decomposition\n\n\nShow the code\nstock_tbl %&gt;%\n  plot_stl_diagnostics(Date,Value)\n\n\n\n\n\n\nShow the code\nstock_tbl %&gt;%\n  mutate(Rolling_Avg = rollmean(Value, k=30, fill =NA)) %&gt;%\n  ggplot(aes(x=Date)) +\n  geom_line(aes(y=Value),color=\"blue\")+\n  geom_line(aes(y=Rolling_Avg), color=\"red\")+\n  theme_minimal()\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\nThere is a clear upward trend with fluctuations, meaning a trend following model would work well like ARIMA, XGBoost. There is also seasonality detected as we see some periodic effects so we can also consider SARIMA, Prophet."
+  },
+  {
+    "objectID": "Prototype/forecasting.html#arima-model",
+    "href": "Prototype/forecasting.html#arima-model",
+    "title": "Time Series Forecasting",
+    "section": "6.1 ARIMA Model",
+    "text": "6.1 ARIMA Model\nWe initialize an ARIMA model using arima_reg() and then train it using the training data where Value is the target variable and Date is the independent variable.\nThis model analyzes historical stock prices to identify trends and patterns, assuming that future prices are linearly dependent on past observations.\n\nmodel_arima &lt;- arima_reg() %&gt;%\n  set_engine(\"auto_arima\") %&gt;%\n  fit(Value ~ Date, data = training(splits))\n\n\n\n\n\n\n\nNote\n\n\n\nThe result mentions frequency = 5 observations per 1 week, indicating 5 trading days per week"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#prophet-model",
+    "href": "Prototype/forecasting.html#prophet-model",
+    "title": "Time Series Forecasting",
+    "section": "6.2 Prophet Model",
+    "text": "6.2 Prophet Model\nFor the Prophet Model, we require some data preprocessing, we need to extract time based features from the Date column, normalize numeric date-based features, apply fourier transformation to capture seasonality and convert categorical into dummy variables. This is because Prophet handles seasonality and trend shifts in time series data.\nWe use prophet_reg() to initialize the model, workflow() to combine our preprocessed recipe and train it with our training split.\n\nrecipe_spec &lt;- recipe(Value ~ Date, training(splits)) %&gt;%\n  step_timeseries_signature(Date) %&gt;%\n  step_rm(contains(\"am.pm\"), contains(\"hour\"), contains(\"minute\"),\n          contains(\"second\"), contains(\"xts\"), contains(\"half\"),\n          contains(\".iso\")) %&gt;%\n  step_normalize(Date_index.num) %&gt;%\n  step_fourier(Date, period = 12, K = 1) %&gt;%\n  step_dummy(all_nominal())\n\nworkflow_fit_prophet &lt;- workflow() %&gt;%\n  add_model(\n    prophet_reg() %&gt;% set_engine(\"prophet\")\n  ) %&gt;%\n  add_recipe(recipe_spec) %&gt;%\n  fit(training(splits))"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#xgboost",
+    "href": "Prototype/forecasting.html#xgboost",
+    "title": "Time Series Forecasting",
+    "section": "6.3 XGBoost",
+    "text": "6.3 XGBoost\nFor the XGBoost model, we do some data preprocessing as well, we extract useful features from the Date column such as year, month, day of year and week, we convert categorical into dummy variables and normalize numeric predictors.\nWe define the gradient boosting tree for regression tasks and use workflow() to combine our model and recipe.\n\nrecipe_spec_parsnip &lt;- recipe(Value ~ Date, data = training(splits)) %&gt;%\n  step_date(Date, features = c(\"year\", \"month\", \"doy\", \"week\")) %&gt;% \n  step_dummy(all_nominal_predictors()) %&gt;%  \n  step_normalize(all_numeric_predictors()) %&gt;%  \n  step_rm(Date) \nprepped_recipe &lt;- prep(recipe_spec_parsnip)\n\ntrain_processed &lt;- juice(prepped_recipe)\n\nX_train &lt;- train_processed %&gt;% select(-Value)\ny_train &lt;- train_processed$Value\n\nsapply(X_train, class)\n\n     Date_year       Date_doy      Date_week Date_month_Feb Date_month_Mar \n     \"numeric\"      \"numeric\"      \"numeric\"      \"numeric\"      \"numeric\" \nDate_month_Apr Date_month_May Date_month_Jun Date_month_Jul Date_month_Aug \n     \"numeric\"      \"numeric\"      \"numeric\"      \"numeric\"      \"numeric\" \nDate_month_Sep Date_month_Oct Date_month_Nov Date_month_Dec \n     \"numeric\"      \"numeric\"      \"numeric\"      \"numeric\" \n\nworkflow_fit_xgboost &lt;- workflow() %&gt;%\n  add_model(boost_tree(mode = \"regression\") %&gt;% set_engine(\"xgboost\")) %&gt;%\n  add_recipe(recipe_spec_parsnip) %&gt;%\n  fit(training(splits))"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#ets",
+    "href": "Prototype/forecasting.html#ets",
+    "title": "Time Series Forecasting",
+    "section": "6.4 ETS",
+    "text": "6.4 ETS\nThe ETS model determines whether the time series has error, trend and seasonality, we define this by using exp_smoothing().\n\nmodel_ets &lt;- exp_smoothing() %&gt;%\n  set_engine(\"ets\") %&gt;%\n  fit(Value ~ Date, data = training(splits))"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#random-forest",
+    "href": "Prototype/forecasting.html#random-forest",
+    "title": "Time Series Forecasting",
+    "section": "6.5 Random Forest",
+    "text": "6.5 Random Forest\nFor random forest, we do some preprocessing, we extract features from date, convert categorical variables to dummy and normalize numerical features.\nWe define the model by using rand_forest(), with 500 trees and 50 minimum samples required to make a split in the tree.\n\nrecipe_rf &lt;- recipe(Value ~ Date, data = training(splits)) %&gt;%\n  step_date(Date, features = c(\"year\", \"month\", \"dow\")) %&gt;% \n  step_dummy(all_nominal_predictors()) %&gt;%  \n  step_normalize(all_numeric_predictors()) \n\nmodel_rf &lt;- rand_forest(\n  mode = \"regression\", \n  trees = 500,          \n  min_n = 50            \n) %&gt;%\n  set_engine(\"ranger\")\n\nworkflow_fit_rf &lt;- workflow() %&gt;%\n  add_model(model_rf) %&gt;%\n  add_recipe(recipe_rf) %&gt;%\n  fit(training(splits))"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#plotting-our-forecast-models",
+    "href": "Prototype/forecasting.html#plotting-our-forecast-models",
+    "title": "Time Series Forecasting",
+    "section": "Plotting our forecast models",
+    "text": "Plotting our forecast models\n\n\nShow the code\ncalibrated_tbl &lt;- calibrated_tbl %&gt;%\n  mutate(.model_desc = case_when(\n    .model_id ==1 ~ \"ARIMA\",\n    str_detect(.model_desc, \"RANGER\") ~ \"Random Forest\",\n    TRUE ~ .model_desc\n  ))\nforecast_tbl &lt;- calibrated_tbl %&gt;%\n  modeltime_forecast(new_data = testing(splits), actual_data = stock_tbl)\n\nplot_modeltime_forecast(forecast_tbl, .interactive = TRUE)\n\n\n\n\n\n\n\n\n\n\n\n\nInsight\n\n\n\nFrom the visualization we can identify XGBoost and Prophet provide more realistic and adaptive trends.\nARIMA & ETS are more static and this may be due to not being able to handle rapid changes well.\nRandom Forest shows instability as the model may not have been calibrated well."
+  },
+  {
+    "objectID": "Prototype/forecasting.html#model-evaluation",
+    "href": "Prototype/forecasting.html#model-evaluation",
+    "title": "Time Series Forecasting",
+    "section": "Model Evaluation",
+    "text": "Model Evaluation\n\n\nShow the code\ncalibrated_tbl %&gt;%\n  modeltime_accuracy() %&gt;%\n  table_modeltime_accuracy(.round_digits = 3)\n\n\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\nAccording to the numbers it seems that ETS and Prophet are best models in this case with the lowest error."
+  },
+  {
+    "objectID": "Prototype/forecasting.html#visualizing-comparison",
+    "href": "Prototype/forecasting.html#visualizing-comparison",
+    "title": "Time Series Forecasting",
+    "section": "Visualizing Comparison",
+    "text": "Visualizing Comparison\n\n\nShow the code\naccuracy_tbl &lt;- calibrated_tbl %&gt;%\n  modeltime_accuracy() %&gt;%\n  pivot_longer(cols = c(mae, rmse, mape),\n               names_to = \"Metric\", values_to = \"Value\") %&gt;%\n  mutate(.model_desc = case_when(\n    .model_desc == \"PROPHET W/ REGRESSORS\" ~ \"Prophet\",\n    .model_desc == \"1_UPDATE: ARIMA(0,1,0)(0,1,1)[5] WITH DRIFT\" ~ \"ARIMA\",\n    .model_desc == \"4_ETS(M,N,N)\" ~ \"ETS\",\n    TRUE ~ .model_desc  \n  ))\n\nggplot(accuracy_tbl, aes(x = reorder(.model_desc, Value), y = Value, fill = Metric)) +\n  geom_col(position = \"dodge\", width = 0.6) +  \n  facet_wrap(~ Metric, scales = \"free_y\") +  \n  coord_flip() +  # Flip for readability\n  scale_fill_manual(values = c(\"mae\" = \"#E74C3C\", \"mape\" = \"#2ECC71\", \"rmse\" = \"#3498DB\")) + \n  labs(title = \"Model Performance Comparison\",\n       x = \"Model\",\n       y = \"Metric Value\") +\n  theme_minimal(base_size = 14) +  \n  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust=1),\n        legend.position = \"bottom\")"
+  },
+  {
+    "objectID": "Prototype/forecasting.html#projecting-forward",
+    "href": "Prototype/forecasting.html#projecting-forward",
+    "title": "Time Series Forecasting",
+    "section": "Projecting Forward",
+    "text": "Projecting Forward\nWe now plot a 2 month projection forward using our models. This will be the forecast used in our shiny app, where users can calibrate how many months ahead they want to visualize, of course with a cap.\n\n\nShow the code\ncalibrated_tbl %&gt;%\n  modeltime_refit(stock_tbl) %&gt;%\n  modeltime_forecast(h = \"2 months\", actual_data = stock_tbl) %&gt;%\n\n  plot_modeltime_forecast(.interactive = TRUE)"
   }
 ]
