@@ -11,6 +11,8 @@ website:
             menu: 
             - text: "Time Series Forecasting"
               href: "Prototype/forecasting.html"
+            - text: "Confirmatory Data Analysis"
+              href: "Prototype/confirmatory_analysis.html"
           
       
     right:

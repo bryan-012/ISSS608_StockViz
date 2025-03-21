@@ -1,0 +1,544 @@
+---
+title: "Confirmatory Analysis"
+author: "Justin Lim Zheng Han"
+date: "March 19, 2025"
+date-modified: "last-modified" 
+---
+
+# Confirmatory Data Analysis
+
+## Getting Started
+
+### Installing the required R packages
+
+We will load the following packages by using the pacman::p_load function:
+
+tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments
+
+```{r}
+#| echo: false
+
+pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments)
+```
+
+### Loading the Dataset
+
+Our stock data will be retrieved from Yahoo Finance using quantmod. In Shiny App, Data will be pulled real-time according to user's selection. For now FANG data will be used to demonstrate EDA and CDA.
+
+```{r}
+data(FANG, package="tidyquant")
+```
+
+## Data Overview (Exploratory Data Analysis)
+
+### Portfolio-Level Summary
+
+In R Shiny, user will be able to select the stocks they have in their Portfolio. 
+From the selected stocks, EDA will run accordingly.
+
+### 📦 Simulated User Portfolio Input
+```{r}
+# Simulate user portfolio (can be dynamic in Shiny later) 
+user_portfolio <- data.frame(
+  symbol = c("AAPL", "MSFT", "TSLA", "NVDA", "AMZN", "NVDA"),
+  buy_date = as.Date(c("2022-01-15", "2022-02-20", "2022-03-10", "2022-04-05", "2022-05-12", "2024-01-17")),
+  quantity = c(10, 15, 5, 8, 12, 7)
+)
+user_portfolio
+```
+
+### 📈 Download Stock Price Data from Yahoo Finance
+```{r}
+# Get stock data from buy dates onward
+data_start <- min(user_portfolio$buy_date)
+stock_data <- tq_get(user_portfolio$symbol, from = data_start, to = Sys.Date())
+```
+
+### 📊 Calculate Returns and Current Values
+```{r}
+# Join each stock with its buy date and quantity
+portfolio_results <- list()
+
+for (i in 1:nrow(user_portfolio)) {
+  stock <- user_portfolio$symbol[i]
+  buy_date <- user_portfolio$buy_date[i]
+  qty <- user_portfolio$quantity[i]
+
+  # Get prices for that stock
+  stock_prices <- stock_data %>% filter(symbol == stock)
+
+  if (nrow(stock_prices) == 0) {
+    warning(paste("No price data found for", stock, "- skipping..."))
+    next
+  }
+
+  available_dates <- stock_prices$date
+  valid_buy_date <- max(available_dates[available_dates <= buy_date])
+
+  # Check if a valid buy date was found
+  if (is.infinite(valid_buy_date) | is.na(valid_buy_date)) {
+    warning(paste("No available trading date before", buy_date, "for", stock, "- skipping..."))
+    next
+  }
+
+  # Get the adjusted price on the valid buy date
+  buy_price_row <- stock_prices %>% filter(date == valid_buy_date)
+  if (nrow(buy_price_row) == 0) {
+    warning(paste("Buy price not available on", valid_buy_date, "for", stock, "- skipping..."))
+    next
+  }
+
+  buy_price <- buy_price_row$adjusted[1]
+
+  # Proceed only if buy_price is non-missing and > 0
+  if (is.na(buy_price) || buy_price == 0) {
+    warning(paste("Invalid buy price for", stock, "- skipping..."))
+    next
+  }
+
+  # Build return tracking table
+  tracking_data <- stock_prices %>%
+    filter(date >= valid_buy_date) %>%
+    arrange(date) %>%
+    mutate(
+      return_since_buy = (adjusted / buy_price) - 1,
+      current_value = adjusted * qty,
+      stock = stock,
+      buy_date = valid_buy_date,
+      quantity = qty,
+      buy_price = buy_price,
+      invested_amount = buy_price * qty,
+      holding_value = adjusted * qty,
+      unrealized_return = (adjusted - buy_price) * qty
+    )
+
+  portfolio_results[[i]] <- tracking_data
+}
+
+portfolio_tracking_all <- bind_rows(portfolio_results)
+```
+
+### 📋 Portfolio Summary (Latest Value & Return)
+```{r}
+# Add position_id to tracking data
+portfolio_tracking_all <- portfolio_tracking_all %>%
+  mutate(position_id = paste0(stock, "_", buy_date))
+
+# Group by position_id (instead of just stock)
+portfolio_summary <- portfolio_tracking_all %>%
+  group_by(position_id) %>%
+  filter(date == max(date)) %>%
+  summarise(
+    stock = first(stock),
+    buy_date = first(buy_date),
+    quantity = first(quantity),
+    buy_price = first(buy_price),
+    invested_amount = first(invested_amount),
+    current_price = first(adjusted),
+    current_value = first(holding_value),
+    unrealized_return = first(unrealized_return),
+    return_percent = first(return_since_buy)
+  ) %>%
+  mutate(return_percent_label = scales::percent(return_percent))
+
+portfolio_summary
+```
+
+### 📈 Plot Return Since Buy Date (All Stocks)
+```{r}
+# Base ggplot chart with distinct lines for same stock different buy-ins
+p <- ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
+  geom_line(size = 1) +
+  labs(title = "Cumulative Return Since Buy Date (By Position)", y = "Return", x = "Date") +
+  scale_y_continuous(labels = scales::percent)
+
+# Make it interactive
+ggplotly(p, tooltip = c("x", "y", "color"))
+```
+### 📈 Interactive Plot Return for each Stock
+
+```{r}
+plot_ly(
+  data = portfolio_tracking_all,
+  x = ~date,
+  y = ~holding_value,
+  color = ~position_id,
+  type = 'scatter',
+  mode = 'lines',
+  text = ~paste0(
+    "Stock: ", stock, "<br>",
+    "Buy Date: ", buy_date, "<br>",
+    "Date: ", format(date, "%Y-%m-%d"), "<br>",
+    "Value: $", format(round(holding_value, 2), big.mark = ",")
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Individual Stock Value Over Time (By Buy-in Position)",
+    xaxis = list(title = "Date"),
+    yaxis = list(title = "Holding Value (USD)")
+  )
+```
+
+
+### 📦 Total Portfolio Value Over Time
+```{r}
+total_portfolio <- portfolio_tracking_all %>%
+  group_by(date) %>%
+  summarise(total_value = sum(holding_value), .groups = "drop")
+
+# ggplot base
+p <- ggplot(total_portfolio, aes(x = date, y = total_value)) +
+  geom_line(color = "darkgreen", size = 1.2) +
+  labs(title = "Total Portfolio Value Over Time", y = "Value (USD)", x = "Date") +
+  scale_y_continuous(labels = scales::dollar)
+
+# Convert to interactive
+ggplotly(p, tooltip = c("x", "y"))
+```
+
+### ✅ Summary
+- Simulated multi-stock portfolio
+- Live Yahoo Finance data via `tq_get()`
+- Return tracking since individual buy dates
+- Portfolio-level return and value plots
+
+➡ Ready to convert into Shiny later using `selectInput()` and `dateInput()`!
+
+
+```{r}
+colnames(portfolio_tracking_all)
+```
+
+#### Time-series Price Trend
+
+```{r}
+ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
+  geom_line() +
+  labs(title = "Adjusted Closing Price Over Time", y = "Adjusted Price", x = "Date")
+```
+
+#### Rolling
+
+```{r}
+stock_data <- stock_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
+  ungroup()
+
+stock_data <- stock_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(rolling_vol_20 = rollapply(daily_return, width = 20, FUN = sd, fill = NA, align = "right")) %>%
+  ungroup()
+
+ggplot(stock_data %>% filter(!is.na(rolling_vol_20)), 
+       aes(x = date, y = rolling_vol_20, color = symbol)) +
+  geom_line(size = 1) +
+  labs(
+    title = "20-Day Rolling Volatility (Standard Deviation of Daily Returns)",
+    x = "Date",
+    y = "Rolling Volatility (Std Dev)"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+Observations:
+
+- TSLA (Purple Line) shows the highest volatility overall. It fluctuates often and peaks above 6%, meaning high price swings daily.
+
+- MSFT (Green Line) is the least volatile, maintaining a very consistent low volatility around 1–2%, reflecting its status as a stable, mature stock.
+
+- NVDA (Cyan) and AMZN (Red) fluctuate in between — but note that NVDA has occasional sharp volatility spikes, likely due to earnings or news events.
+
+- Spikes in volatility (upward jumps) are usually tied to market news, economic events, earnings releases, or crashes/rallies.
+
+- Periods of low volatility indicate price stability or consolidation phases.
+
+### Individual stock-level EDA
+
+#### Descriptive Statistics
+
+```{r}
+portfolio_tracking_all %>%
+  group_by(position_id) %>%
+  summarise(
+    stock = first(stock),
+    buy_date = first(buy_date),
+    mean_return = mean(return_since_buy, na.rm = TRUE),
+    sd_return = sd(return_since_buy, na.rm = TRUE),
+    median_return = median(return_since_buy, na.rm = TRUE),
+    min_return = min(return_since_buy, na.rm = TRUE),
+    max_return = max(return_since_buy, na.rm = TRUE)
+  )
+```
+
+mean_return: Daily gain on average
+sd_return: Daily volatility
+median_return: Median 
+min_return: Minimum return
+max_return: Maximum return 
+
+#### Cumulative Returns
+
+```{r}
+portfolio_tracking_all <- portfolio_tracking_all %>%
+  arrange(stock, buy_date, date) %>%
+  group_by(position_id) %>%
+  mutate(
+    cumulative_return = cumprod(1 + coalesce(return_since_buy, 0))
+  ) %>%
+  ungroup()
+
+ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Cumulative Return Since Buy Date (Per Buy-in)",
+    x = "Date",
+    y = "Cumulative Return"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+### Correlation analysis
+
+```{r}
+# Ensure daily return is available (if not already calculated)
+stock_data <- stock_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
+  ungroup()
+
+# Summarise to ensure one return per symbol-date (safety step)
+returns_clean <- stock_data %>%
+  group_by(date, symbol) %>%
+  summarise(daily_return = mean(daily_return, na.rm = TRUE), .groups = "drop")
+
+# Pivot wider
+returns_matrix <- returns_clean %>%
+  pivot_wider(names_from = symbol, values_from = daily_return)
+
+# Ensure numeric
+returns_matrix <- returns_matrix %>%
+  mutate(across(-date, as.numeric))
+
+# Compute correlation matrix
+returns_corr <- cor(returns_matrix %>% select(-date), use = "pairwise.complete.obs")
+
+# Plot
+corrplot(
+  returns_corr,
+  method = "color",
+  addCoef.col = "black",
+  number.cex = 0.8,
+  title = "Daily Return Correlation Matrix",
+  mar = c(0, 0, 2, 0)
+)
+```
+Observation:
+
+- AMZN and MSFT show the highest correlation in your portfolio — likely due to their similar sector dynamics (large-cap tech, index-driven movements).
+
+#### Return Vs Votality
+
+```{r}
+# Step 1: Calculate mean return and volatility per stock
+return_volatility_stats <- stock_data %>%
+  group_by(symbol) %>%
+  summarise(
+    mean_return = mean(daily_return, na.rm = TRUE),
+    volatility = sd(daily_return, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Step 2: Plot the Risk–Return scatter plot
+ggplot(return_volatility_stats, aes(x = volatility, y = mean_return, label = symbol)) +
+  geom_point(size = 4, color = "darkblue") +
+  geom_text(nudge_y = 0.0005, fontface = "bold") +
+  labs(
+    title = "Return vs Volatility (Risk–Return Tradeoff)",
+    x = "Volatility (Standard Deviation of Daily Return)",
+    y = "Mean Daily Return"
+  ) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+
+## Data Overview (CDA)
+
+### 1. Wilcoxon Rank-Sum Test (Median Comparison)
+
+```{r}
+# Replace with user-defined stock selection
+stock_a <- "AMZN"
+stock_b <- "TSLA"
+
+df_wilcox <- stock_data %>%
+  filter(symbol %in% c(stock_a, stock_b)) %>%
+  select(symbol, daily_return) %>%
+  filter(!is.na(daily_return))
+
+wilcox.test(daily_return ~ symbol, data = df_wilcox)
+```
+Observation:
+
+- p-value = 0.6222 is much higher than 0.05 → So you fail to reject the null hypothesis.
+
+- There is no statistically significant difference in the median daily returns of AMZN and TSLA.
+
+### 2. F-Test for Variance Comparison
+
+```{r}
+# 📌 Simulated user input (replace with input$stock1 / input$stock2 in Shiny later)
+stock1 <- "AMZN"
+stock2 <- "MSFT"
+
+# Step 1: Prepare data for selected stocks
+var_test_data <- stock_data %>%
+  filter(symbol %in% c(stock1, stock2)) %>%
+  select(symbol, daily_return) %>%
+  filter(!is.na(daily_return))
+
+# Step 2: Perform F-test
+cat(paste0("Comparing Variance of Daily Returns: ", stock1, " vs ", stock2, "\n"))
+var_test_result <- var.test(daily_return ~ symbol, data = var_test_data)
+print(var_test_result)
+```
+
+### 3. Pearson Correlation Test (Relationship)
+
+```{r}
+stock1 <- "AMZN"
+stock2 <- "MSFT"
+
+cor_data <- stock_data %>%
+  filter(symbol %in% c(stock1, stock2)) %>%
+  select(symbol, date, daily_return) %>%
+  pivot_wider(names_from = symbol, values_from = daily_return) %>%
+  filter(!is.na(.data[[stock1]]), !is.na(.data[[stock2]]))
+
+cor.test(cor_data[[stock1]], cor_data[[stock2]], method = "pearson")
+```
+### 4. Multiple Linear Regression: Return ~ Volume + Market Index
+
+```{r}
+# --- 📌 Simulated user inputs (can be replaced by Shiny inputs) ---
+target_stock <- "AMZN"
+market_index_stock <- "MSFT"
+
+# --- Step 1: Prepare dataset for regression ---
+reg_data <- stock_data %>%
+  filter(symbol %in% c(target_stock, market_index_stock)) %>%
+  select(date, symbol, daily_return, volume) %>%
+  pivot_wider(names_from = symbol, values_from = c(daily_return, volume))
+
+# --- Step 2: Rename columns dynamically ---
+# Construct variable names
+target_return_col <- paste0("daily_return_", target_stock)
+target_volume_col <- paste0("volume_", target_stock)
+market_return_col <- paste0("daily_return_", market_index_stock)
+
+# Rename for regression model
+reg_data <- reg_data %>%
+  rename(
+    target_return = !!target_return_col,
+    target_volume = !!target_volume_col,
+    market_return = !!market_return_col
+  ) %>%
+  filter(!is.na(target_return), !is.na(target_volume), !is.na(market_return))
+
+# --- Step 3: Run Multiple Linear Regression ---
+cat(paste0("📊 Multiple Linear Regression: ", target_stock, " ~ Volume + ", market_index_stock, " Return\n"))
+model <- lm(target_return ~ target_volume + market_return, data = reg_data)
+summary(model)
+```
+### 5. ANOVA Test (One-way or Two-way)
+
+```{r}
+# One-way ANOVA: Do average daily returns differ across your stocks?
+anova_data <- stock_data %>%
+  select(symbol, daily_return) %>%
+  filter(!is.na(daily_return))
+
+anova_model <- aov(daily_return ~ symbol, data = anova_data)
+
+# Display ANOVA summary
+cat("📊 One-Way ANOVA: Daily Return ~ Stock\n")
+summary(anova_model)
+```
+
+### 5. Two-way ANOVA (Return ~ Symbol + Month)
+
+```{r}
+# Add a "month" variable
+stock_data <- stock_data %>%
+  mutate(month = month(date, label = TRUE))
+
+# Prepare data
+anova2_data <- stock_data %>%
+  select(symbol, daily_return, month) %>%
+  filter(!is.na(daily_return))
+
+# Two-way ANOVA: Test effect of both stock and month
+anova2_model <- aov(daily_return ~ symbol + month, data = anova2_data)
+
+# Display ANOVA summary
+cat("📊 Two-Way ANOVA: Daily Return ~ Stock + Month\n")
+summary(anova2_model)
+```
+
+### 6. Event Study Analysis – Cumulative Abnormal Returns (CAR) during COVID (2020–2022)
+
+```{r}
+# --- 📌 Simulated user input (replace with selectInput in Shiny later) ---
+target_stock <- "NVDA"
+market_index_stock <- "MSFT"
+
+# Step 1: Get event period stock data (COVID years 2020–2022)
+event_stocks <- unique(c(target_stock, market_index_stock))
+
+event_stock_data <- tq_get(event_stocks, from = "2020-01-01", to = "2022-12-31") %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
+  ungroup()
+
+# Step 2: Pivot wider for return matrix
+event_df <- event_stock_data %>%
+  select(date, symbol, daily_return) %>%
+  filter(!is.na(daily_return)) %>%
+  pivot_wider(names_from = symbol, values_from = daily_return)
+
+# Step 3: Rename columns dynamically
+target_col <- target_stock
+market_col <- market_index_stock
+colnames(event_df)[which(colnames(event_df) == target_stock)] <- "target_return"
+colnames(event_df)[which(colnames(event_df) == market_index_stock)] <- "market_return"
+
+# Step 4: Estimate expected returns (OLS regression)
+model <- lm(target_return ~ market_return, data = event_df)
+
+# Step 5: Compute abnormal return & CAR
+event_df$expected_return <- predict(model, newdata = event_df)
+event_df <- event_df %>%
+  mutate(
+    abnormal_return = target_return - expected_return,
+    CAR = cumsum(abnormal_return)
+  )
+
+# Step 6: Plot CAR interactively
+plot_ly(event_df, x = ~date, y = ~CAR, type = "scatter", mode = "lines",
+        line = list(color = "darkblue")) %>%
+  layout(
+    title = paste(target_stock, "Cumulative Abnormal Return (2020–2022)"),
+    xaxis = list(title = "Date"),
+    yaxis = list(title = "Cumulative Abnormal Return (CAR)")
+  )
+```
+
+
+
