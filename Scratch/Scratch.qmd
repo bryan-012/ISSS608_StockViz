@@ -1,0 +1,187 @@
+---
+title: "Scratch"
+---
+
+#### For testing of code
+
+```{r}
+pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally)
+```
+
+```{r}
+data(FANG, package="tidyquant")
+```
+
+```{r}
+# show the first 5 rows
+FANG %>% slice(1:5)
+
+tbs1 <- tibble(
+  Date = seq(as.Date("2017-01-01"), length=3, by="months"),
+  returns = rnorm(3),
+  letters = sample(letters, 3, replace = TRUE)
+)
+
+tbs1
+```
+```{r}
+# extract the returns column as vector
+tbs1$returns
+
+tbs1 %>% pull(returns)
+
+tbs1[[2]]
+
+tbs1 %>% .[[2]]
+
+```
+```{r}
+# vreate temporary file
+tmp <- tempfile(fileext = ".csv")
+
+write_csv(tbs1,file = tmp)
+
+tbs1b <- read_csv(tmp)
+
+dplyr::all_equal(tbs1,tbs1b) # only the factor levels differ
+```
+```{r}
+# temporary file name
+tmp <- tempfile(fileext = ".xlsx")
+
+# write to Excel file
+writexl::write_xlsx(FANG,path = tmp)
+
+# read from Excel file and transform to date using mutate
+FANG3 <- readxl::read_xlsx(tmp) %>% mutate(date=as.Date(date))
+
+# check whether both datasets are similar
+dplyr::all_equal(FANG,FANG3) 
+```
+```{r}
+# data dimensions
+dim(FANG)
+
+# names
+names(FANG)
+
+# carefully inspect the data
+glimpse(FANG)
+```
+```{r}
+# information on the first three variables
+FANG %>% select(symbol,date,open) %>% summary()
+```
+```{r}
+# arrange, filter, mutate
+FANG_ret <- FANG %>% group_by(symbol) %>% select(symbol,date,adjusted) %>%
+  arrange(date) %>%
+  filter(date>"2016-06-30") %>%
+  mutate(return=adjusted/dplyr::lag(adjusted)-1) 
+# show
+FANG_ret %>% slice(1:2)
+```
+
+## Regression
+
+```{r}
+FANG_ret2 <- FANG_ret %>% ungroup() %>%
+  left_join(FANG_ret %>% group_by(date) %>% summarise(index=mean(return)),by="date") %>%
+  select(symbol,date,return,index)
+FANG_ret2 %>% group_by(symbol) %>% slice(1:2)
+```
+
+```{r}
+FANG_ret2n <- FANG_ret2 %>% nest_by(symbol)
+FANG_ret2n
+```
+
+```{r}
+FANG_reg <- FANG_ret2n %>%
+  mutate(model = list(lm(return ~ index, data = data)))
+FANG_reg
+```
+
+```{r}
+FANG_reg %>%
+  summarize(tidy(model))
+```
+
+```{r}
+FANG_reg %>%
+  summarize(glance(model))
+```
+
+```{r}
+FANG_ret2n %>%
+  mutate(model = list(bind_rows(coef(lm(return ~ index, data = data))))) %>%
+  unnest(model)
+```
+
+```{r}
+FANG_reg %>%
+  mutate(ci=list(as_tibble(confint(model),rownames="coef"))) %>%
+  unnest(ci) %>% select(-data,-model)
+```
+
+```{r}
+FANG_reg %>%
+  mutate(lmHC = list(coeftest(model, vcov. = vcovHC(model, type = "HC1")))) %>%
+  reframe(broom::tidy(lmHC), .groups = "drop")
+```
+
+## Plotting
+
+```{r}
+FANG_ret %>% ggplot(aes(symbol, return)) + geom_boxplot(aes(color=symbol)) + 
+  labs(x="symbols", y="returns")
+```
+
+```{r}
+FANG_ret %>%
+  filter(is.finite(return)) %>%
+  ggplot(aes(x = return)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.01, fill = "skyblue", color = "black") +
+  geom_density(lwd = 1, color = "darkblue") +
+  facet_wrap(~symbol, scales = "free") +
+  xlab("Return") +
+  ggtitle("Distribution of Returns by Stock Symbol")
+```
+```{r}
+p <- FANG_ret %>%
+  ungroup() %>%
+  select(date, return, symbol) %>%
+  pivot_wider(id_cols = date, names_from = symbol, values_from = return) %>%
+  filter(if_all(-date, ~ is.finite(.) & !is.na(.))) %>%
+  select(-date) %>%
+  ggpairs()
+
+p
+```
+
+
+
+
+
+
+
+
+
+```{r}
+tq_exchange_options()
+```
+
+```{r}
+amex <- tq_exchange("AMEX")
+saveRDS(amex, "amex_data.rds")
+
+nasdaq <- tq_exchange("NASDAQ")
+saveRDS(nasdaq, "nasdaq_data.rds")
+
+nyse <- tq_exchange("NYSE")
+saveRDS(nyse, "nyse_data.rds")
+```
+
+
+
+
