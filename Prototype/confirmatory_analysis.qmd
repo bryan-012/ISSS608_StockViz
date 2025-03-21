@@ -23,18 +23,7 @@ pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, s
 
 ### Loading the Dataset
 
-Our stock data will be retrieved from Yahoo Finance using quantmod. In Shiny App, Data will be pulled real-time according to user's selection. For now FANG data will be used to demonstrate EDA and CDA.
-
-```{r}
-data(FANG, package="tidyquant")
-```
-
-## Data Overview (Exploratory Data Analysis)
-
-### Portfolio-Level Summary
-
-In R Shiny, user will be able to select the stocks they have in their Portfolio. 
-From the selected stocks, EDA will run accordingly.
+Our stock data will be retrieved from Yahoo Finance using quantmod. In Shiny App, Data will be pulled real-time according to user's selection. For now below data will be used to demonstrate EDA and CDA.
 
 ### 📦 Simulated User Portfolio Input
 ```{r}
@@ -46,6 +35,15 @@ user_portfolio <- data.frame(
 )
 user_portfolio
 ```
+
+## Data Overview (Exploratory Data Analysis)
+
+### Portfolio-Level Summary
+
+In R Shiny, user will be able to select the stocks they have in their Portfolio. 
+From the selected stocks, EDA will run accordingly.
+
+
 
 ### 📈 Download Stock Price Data from Yahoo Finance
 ```{r}
