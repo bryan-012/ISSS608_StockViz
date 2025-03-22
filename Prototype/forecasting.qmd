@@ -175,6 +175,41 @@ stock_tbl %>%
 There is a clear upward trend with fluctuations, meaning a trend following model would work well like ARIMA, XGBoost. There is also seasonality detected as we see some periodic effects so we can also consider SARIMA, Prophet.
 :::
 
+## 4.5 Correlation of Time Series Features
+
+This step is to help us identify which date components (e.g month, week, quarter) are most correlated with stock prices, which will be useful when building our forecasting model.
+
+```{R}
+library(ggcorrplot)
+
+sig_tbl <- stock_tbl %>%
+  tk_augment_timeseries_signature() %>%
+  select(-Date)
+
+numeric_tbl <- sig_tbl %>%
+  select(where(is.numeric)) %>%
+  select(where(~ sd(.x, na.rm = TRUE) > 0))
+
+numeric_tbl$Value <- stock_tbl$Value
+
+corr_with_value <- cor(numeric_tbl, use = "complete.obs")[, "Value", drop = FALSE]
+
+corr_df <- as.data.frame(corr_with_value) %>%
+  rownames_to_column("feature") %>%
+  filter(feature != "Value")
+
+ggplot(corr_df, aes(x = reorder(feature, Value), y = Value)) +
+  geom_col(fill = "#1f77b4") +
+  coord_flip() +
+  labs(
+    title = "Correlation of Time Features with Stock Price (Value)",
+    x = "Feature",
+    y = "Correlation with Value"
+  ) +
+  theme_minimal()
+
+```
+
 # 5. Preparing Data for model building
 
 We divide the data set into training (80%) and testing (20%) sets, as general preparation for training predictive models. This ensures the model generalizes well to unseen data, prevent data leakage and facilitate a fair comparison among models.
@@ -270,6 +305,24 @@ workflow_fit_xgboost <- workflow() %>%
 
 ```
 
+## Variable Importance
+
+```{R}
+library(vip)
+
+workflow_fit_xgboost %>%
+  extract_fit_parsnip() %>%
+  vip(num_features = 15) +
+  ggtitle("XGBoost Feature Importance")
+
+```
+
+::: callout-note
+## Insights
+
+According to our XGBoost model, the year and seasonality of the year (day-of-year) have the strongest influence on stock price, while specific month dummies have little predictive value.
+:::
+
 ## 6.4 ETS
 
 The ETS model determines whether the time series has error, trend and seasonality, we define this by using exp_smoothing().
@@ -345,7 +398,7 @@ plot_modeltime_forecast(forecast_tbl, .interactive = TRUE)
 ```
 
 ::: callout-note
-## Insight 
+## Insight
 
 From the visualization we can identify XGBoost and Prophet provide more realistic and adaptive trends.
 
@@ -368,6 +421,37 @@ calibrated_tbl %>%
 ## Insights
 
 According to the numbers it seems that ETS and Prophet are best models in this case with the lowest error.
+:::
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+model_residuals <- calibrated_tbl %>%
+modeltime_residuals()
+model_residuals %>%
+  plot_modeltime_residuals(.type = "timeplot")
+
+
+```
+
+```{R}
+#| code-fold: true
+#| code-summary: "Show the code"
+model_residuals %>%
+  plot_modeltime_residuals(.type = "acf")
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+model_residuals %>%
+  plot_modeltime_residuals(.type = "seasonality")
+```
+
+::: callout-tip
+## Thinking 
+
+It might not be a good idea to just include XGBoost or Random Forest but giving a variety of forecasting models options into our application may allow for better decision making.
 :::
 
 ## Visualizing Comparison
