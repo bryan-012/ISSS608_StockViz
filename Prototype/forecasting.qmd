@@ -449,7 +449,7 @@ model_residuals %>%
 ```
 
 ::: callout-tip
-## Thinking 
+## Thinking
 
 It might not be a good idea to just include XGBoost or Random Forest but giving a variety of forecasting models options into our application may allow for better decision making.
 :::

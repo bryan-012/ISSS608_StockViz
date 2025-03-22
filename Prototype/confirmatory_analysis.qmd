@@ -26,6 +26,7 @@ pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, s
 Our stock data will be retrieved from Yahoo Finance using quantmod. In Shiny App, Data will be pulled real-time according to user's selection. For now below data will be used to demonstrate EDA and CDA.
 
 ### 📦 Simulated User Portfolio Input
+
 ```{r}
 # Simulate user portfolio (can be dynamic in Shiny later) 
 user_portfolio <- data.frame(
@@ -40,12 +41,10 @@ user_portfolio
 
 ### Portfolio-Level Summary
 
-In R Shiny, user will be able to select the stocks they have in their Portfolio. 
-From the selected stocks, EDA will run accordingly.
-
-
+In R Shiny, user will be able to select the stocks they have in their Portfolio. From the selected stocks, EDA will run accordingly.
 
 ### 📈 Download Stock Price Data from Yahoo Finance
+
 ```{r}
 # Get stock data from buy dates onward
 data_start <- min(user_portfolio$buy_date)
@@ -53,6 +52,7 @@ stock_data <- tq_get(user_portfolio$symbol, from = data_start, to = Sys.Date())
 ```
 
 ### 📊 Calculate Returns and Current Values
+
 ```{r}
 # Join each stock with its buy date and quantity
 portfolio_results <- list()
@@ -117,6 +117,7 @@ portfolio_tracking_all <- bind_rows(portfolio_results)
 ```
 
 ### 📋 Portfolio Summary (Latest Value & Return)
+
 ```{r}
 # Add position_id to tracking data
 portfolio_tracking_all <- portfolio_tracking_all %>%
@@ -143,6 +144,7 @@ portfolio_summary
 ```
 
 ### 📈 Plot Return Since Buy Date (All Stocks)
+
 ```{r}
 # Base ggplot chart with distinct lines for same stock different buy-ins
 p <- ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
@@ -153,6 +155,7 @@ p <- ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = 
 # Make it interactive
 ggplotly(p, tooltip = c("x", "y", "color"))
 ```
+
 ### 📈 Interactive Plot Return for each Stock
 
 ```{r}
@@ -178,8 +181,8 @@ plot_ly(
   )
 ```
 
-
 ### 📦 Total Portfolio Value Over Time
+
 ```{r}
 total_portfolio <- portfolio_tracking_all %>%
   group_by(date) %>%
@@ -196,13 +199,13 @@ ggplotly(p, tooltip = c("x", "y"))
 ```
 
 ### ✅ Summary
-- Simulated multi-stock portfolio
-- Live Yahoo Finance data via `tq_get()`
-- Return tracking since individual buy dates
-- Portfolio-level return and value plots
+
+-   Simulated multi-stock portfolio
+-   Live Yahoo Finance data via `tq_get()`
+-   Return tracking since individual buy dates
+-   Portfolio-level return and value plots
 
 ➡ Ready to convert into Shiny later using `selectInput()` and `dateInput()`!
-
 
 ```{r}
 colnames(portfolio_tracking_all)
@@ -242,17 +245,18 @@ ggplot(stock_data %>% filter(!is.na(rolling_vol_20)),
   scale_y_continuous(labels = scales::percent) +
   theme_minimal()
 ```
+
 Observations:
 
-- TSLA (Purple Line) shows the highest volatility overall. It fluctuates often and peaks above 6%, meaning high price swings daily.
+-   TSLA (Purple Line) shows the highest volatility overall. It fluctuates often and peaks above 6%, meaning high price swings daily.
 
-- MSFT (Green Line) is the least volatile, maintaining a very consistent low volatility around 1–2%, reflecting its status as a stable, mature stock.
+-   MSFT (Green Line) is the least volatile, maintaining a very consistent low volatility around 1–2%, reflecting its status as a stable, mature stock.
 
-- NVDA (Cyan) and AMZN (Red) fluctuate in between — but note that NVDA has occasional sharp volatility spikes, likely due to earnings or news events.
+-   NVDA (Cyan) and AMZN (Red) fluctuate in between — but note that NVDA has occasional sharp volatility spikes, likely due to earnings or news events.
 
-- Spikes in volatility (upward jumps) are usually tied to market news, economic events, earnings releases, or crashes/rallies.
+-   Spikes in volatility (upward jumps) are usually tied to market news, economic events, earnings releases, or crashes/rallies.
 
-- Periods of low volatility indicate price stability or consolidation phases.
+-   Periods of low volatility indicate price stability or consolidation phases.
 
 ### Individual stock-level EDA
 
@@ -272,11 +276,7 @@ portfolio_tracking_all %>%
   )
 ```
 
-mean_return: Daily gain on average
-sd_return: Daily volatility
-median_return: Median 
-min_return: Minimum return
-max_return: Maximum return 
+mean_return: Daily gain on average sd_return: Daily volatility median_return: Median min_return: Minimum return max_return: Maximum return
 
 #### Cumulative Returns
 
@@ -336,9 +336,10 @@ corrplot(
   mar = c(0, 0, 2, 0)
 )
 ```
+
 Observation:
 
-- AMZN and MSFT show the highest correlation in your portfolio — likely due to their similar sector dynamics (large-cap tech, index-driven movements).
+-   AMZN and MSFT show the highest correlation in your portfolio — likely due to their similar sector dynamics (large-cap tech, index-driven movements).
 
 #### Return Vs Votality
 
@@ -382,11 +383,12 @@ df_wilcox <- stock_data %>%
 
 wilcox.test(daily_return ~ symbol, data = df_wilcox)
 ```
+
 Observation:
 
-- p-value = 0.6222 is much higher than 0.05 → So you fail to reject the null hypothesis.
+-   p-value = 0.6222 is much higher than 0.05 → So you fail to reject the null hypothesis.
 
-- There is no statistically significant difference in the median daily returns of AMZN and TSLA.
+-   There is no statistically significant difference in the median daily returns of AMZN and TSLA.
 
 ### 2. F-Test for Variance Comparison
 
@@ -421,7 +423,8 @@ cor_data <- stock_data %>%
 
 cor.test(cor_data[[stock1]], cor_data[[stock2]], method = "pearson")
 ```
-### 4. Multiple Linear Regression: Return ~ Volume + Market Index
+
+### 4. Multiple Linear Regression: Return \~ Volume + Market Index
 
 ```{r}
 # --- 📌 Simulated user inputs (can be replaced by Shiny inputs) ---
@@ -454,6 +457,7 @@ cat(paste0("📊 Multiple Linear Regression: ", target_stock, " ~ Volume + ", ma
 model <- lm(target_return ~ target_volume + market_return, data = reg_data)
 summary(model)
 ```
+
 ### 5. ANOVA Test (One-way or Two-way)
 
 ```{r}
@@ -469,7 +473,7 @@ cat("📊 One-Way ANOVA: Daily Return ~ Stock\n")
 summary(anova_model)
 ```
 
-### 5. Two-way ANOVA (Return ~ Symbol + Month)
+### 5. Two-way ANOVA (Return \~ Symbol + Month)
 
 ```{r}
 # Add a "month" variable
@@ -537,6 +541,3 @@ plot_ly(event_df, x = ~date, y = ~CAR, type = "scatter", mode = "lines",
     yaxis = list(title = "Cumulative Abnormal Return (CAR)")
   )
 ```
-
-
-
