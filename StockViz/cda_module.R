@@ -185,18 +185,19 @@ cda_server <- function(id) {
     
     output$portfolio_summary_table <- render_gt({
       if (is.null(rv$portfolio_summary)) return(NULL)
+      
       df <- rv$portfolio_summary %>%
         mutate(
-          `Buy Price Source` = buy_price_src,
           `Return (%)` = percent(return_pct),
           `Unrealized Return ($)` = dollar(unrealized_return)
         ) %>%
         select(
           Stock = stock, `Buy Date` = buy_date, Quantity = quantity,
-          `Buy Price ($)` = buy_price, `Buy Price Source`,
+          `Buy Price ($)` = buy_price, `Buy Price Source` = buy_price_src,
           `Invested Amount ($)` = invested_amount, `Current Price ($)` = current_price,
           `Current Value ($)` = current_value, `Unrealized Return ($)`, `Return (%)`
         )
+      
       gt(df) %>% tab_header(title = "📋 Portfolio Summary")
     })
     
