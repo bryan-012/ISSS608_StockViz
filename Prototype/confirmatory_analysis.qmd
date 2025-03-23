@@ -13,12 +13,12 @@ date-modified: "last-modified"
 
 We will load the following packages by using the pacman::p_load function:
 
-tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments
+tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments, gt, gtExtras
 
 ```{r}
 #| echo: false
 
-pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments)
+pacman::p_load(tidyquant, tidyverse, xts, timeDate, lubridate, writexl, broom, sandwich, lmtest, dplyr, tidyr, GGally, corrplot, zoo, plotly, scales, moments, gt, gtExtras)
 ```
 
 ### Loading the Dataset
@@ -39,121 +39,232 @@ user_portfolio
 
 ## Data Overview (Exploratory Data Analysis)
 
-### Portfolio-Level Summary
+### Portfolio-Level Summary (Portfolio Analysis Function)
 
 In R Shiny, user will be able to select the stocks they have in their Portfolio. From the selected stocks, EDA will run accordingly.
 
 ### 📈 Download Stock Price Data from Yahoo Finance
 
+In R Shiny, user will be able to select the stocks they have in their Portfolio. 
+From the selected stocks, EDA will run accordingly.
+
+#### 📦 Simulated User Portfolio Input
+
 ```{r}
-# Get stock data from buy dates onward
-data_start <- min(user_portfolio$buy_date)
-stock_data <- tq_get(user_portfolio$symbol, from = data_start, to = Sys.Date())
+# 📦 Function: Prepare User Portfolio Input
+tidy_user_portfolio <- function() {
+  data.frame(
+    symbol = c("AAPL", "MSFT", "TSLA", "NVDA", "AMZN", "NVDA"),
+    buy_date = as.Date(c("2022-01-15", "2022-02-20", "2022-03-10", "2022-04-05", "2022-05-12", "2024-01-17")),
+    quantity = c(10, 15, 5, 8, 12, 7),
+    buy_price = c(NA, 287, NA, 26, NA, 55)
+  )
+}
 ```
 
 ### 📊 Calculate Returns and Current Values
 
 ```{r}
-# Join each stock with its buy date and quantity
-portfolio_results <- list()
+# 📈 Pull Stock Data
+get_stock_data <- function(user_portfolio) {
+  data_start <- min(user_portfolio$buy_date, na.rm = TRUE)
+  stock_data_raw <- tq_get(unique(user_portfolio$symbol), from = data_start, to = Sys.Date())
 
-for (i in 1:nrow(user_portfolio)) {
-  stock <- user_portfolio$symbol[i]
-  buy_date <- user_portfolio$buy_date[i]
-  qty <- user_portfolio$quantity[i]
+  stock_data <- stock_data_raw %>%
+    group_by(symbol, date) %>%
+    summarise(
+      open = first(open),
+      high = max(high, na.rm = TRUE),
+      low = min(low, na.rm = TRUE),
+      close = last(close),
+      volume = sum(volume, na.rm = TRUE),
+      adjusted = last(adjusted),
+      .groups = "drop"
+    )
 
-  # Get prices for that stock
-  stock_prices <- stock_data %>% filter(symbol == stock)
+  return(stock_data)
+}
+```
 
-  if (nrow(stock_prices) == 0) {
-    warning(paste("No price data found for", stock, "- skipping..."))
-    next
-  }
 
-  available_dates <- stock_prices$date
-  valid_buy_date <- max(available_dates[available_dates <= buy_date])
 
-  # Check if a valid buy date was found
-  if (is.infinite(valid_buy_date) | is.na(valid_buy_date)) {
-    warning(paste("No available trading date before", buy_date, "for", stock, "- skipping..."))
-    next
-  }
+```{r}
+# Initialize storage lists
+track_portfolio_returns <- function(user_portfolio, stock_data) {
+  portfolio_results <- list()
+  summary_list <- list()
+  skipped_stocks <- c()
 
-  # Get the adjusted price on the valid buy date
-  buy_price_row <- stock_prices %>% filter(date == valid_buy_date)
-  if (nrow(buy_price_row) == 0) {
-    warning(paste("Buy price not available on", valid_buy_date, "for", stock, "- skipping..."))
-    next
-  }
+  for (i in 1:nrow(user_portfolio)) {
+    stock <- user_portfolio$symbol[i]
+    buy_date_input <- user_portfolio$buy_date[i]
+    qty <- user_portfolio$quantity[i]
+    buy_price_user <- user_portfolio$buy_price[i]
 
-  buy_price <- buy_price_row$adjusted[1]
+    stock_prices <- stock_data %>% filter(symbol == stock)
+    available_dates <- stock_prices$date
+    valid_buy_date <- max(available_dates[available_dates <= buy_date_input])
 
-  # Proceed only if buy_price is non-missing and > 0
-  if (is.na(buy_price) || buy_price == 0) {
-    warning(paste("Invalid buy price for", stock, "- skipping..."))
-    next
-  }
+    if (is.infinite(valid_buy_date) | is.na(valid_buy_date)) {
+      warning(paste("No available trading date before", buy_date_input, "for", stock, "- skipping..."))
+      skipped_stocks <- c(skipped_stocks, stock)
+      next
+    }
 
-  # Build return tracking table
-  tracking_data <- stock_prices %>%
-    filter(date >= valid_buy_date) %>%
-    arrange(date) %>%
-    mutate(
-      return_since_buy = (adjusted / buy_price) - 1,
-      current_value = adjusted * qty,
+    day_row <- stock_prices %>% filter(date == valid_buy_date)
+    day_high <- max(day_row$high, na.rm = TRUE)
+    day_low  <- min(day_row$low, na.rm = TRUE)
+    median_price <- median(day_row$adjusted, na.rm = TRUE)
+
+    if (is.na(median_price) || median_price == 0) {
+      warning(paste("⚠ No valid price data on", valid_buy_date, "for", stock, "- skipping..."))
+      next
+    }
+
+    if (!is.na(buy_price_user)) {
+      buy_price <- buy_price_user
+      buy_price_source <- "User Input"
+      price_out_of_range <- buy_price < day_low | buy_price > day_high
+      if (price_out_of_range) {
+        warning(paste0("⚠ BUY PRICE OUT OF RANGE for ", stock, ": $", round(buy_price_user, 2),
+                       " is outside [$", round(day_low, 2), " – $", round(day_high, 2), "] on ", valid_buy_date))
+      }
+    } else {
+      buy_price <- median_price
+      buy_price_source <- "Median Price"
+      price_out_of_range <- FALSE
+    }
+
+    tracking_data <- stock_prices %>%
+      filter(date >= valid_buy_date) %>%
+      arrange(date) %>%
+      mutate(
+        return_since_buy = (adjusted / buy_price) - 1,
+        current_value = adjusted * qty,
+        stock = stock,
+        buy_date = valid_buy_date,
+        quantity = qty,
+        buy_price = buy_price,
+        invested_amount = buy_price * qty,
+        holding_value = adjusted * qty,
+        unrealized_return = (adjusted - buy_price) * qty,
+        position_id = paste0(stock, "_", valid_buy_date)
+      )
+
+    portfolio_results[[i]] <- tracking_data
+
+    summary_list[[i]] <- tibble(
       stock = stock,
       buy_date = valid_buy_date,
       quantity = qty,
       buy_price = buy_price,
+      buy_price_source = buy_price_source,
+      day_low = day_low,
+      day_high = day_high,
+      price_out_of_range = price_out_of_range,
       invested_amount = buy_price * qty,
-      holding_value = adjusted * qty,
-      unrealized_return = (adjusted - buy_price) * qty
+      current_price = tail(tracking_data$adjusted, 1),
+      current_value = tail(tracking_data$holding_value, 1),
+      unrealized_return = tail(tracking_data$unrealized_return, 1),
+      return_percent = tail(tracking_data$return_since_buy, 1)
+    )
+  }
+
+  list(
+    portfolio_tracking_all = bind_rows(portfolio_results),
+    portfolio_summary = bind_rows(summary_list),
+    skipped_stocks = skipped_stocks
+  )
+}
+```
+
+#### Portfolio Summary
+
+```{r}
+# Clean summary
+generate_portfolio_summary <- function(portfolio_summary) {
+  portfolio_summary_clean <- portfolio_summary %>%
+    mutate(
+      `Buy Price Status` = case_when(
+        is.na(price_out_of_range) ~ "N/A",
+        price_out_of_range ~ "❌ Out of Range",
+        TRUE ~ "✔ OK"
+      ),
+      `Return (%)` = percent(return_percent),
+      `Unrealized Return ($)` = dollar(unrealized_return)
+    ) %>%
+    select(
+      Stock = stock,
+      `Buy Date` = buy_date,
+      Quantity = quantity,
+      `Buy Price ($)` = buy_price,
+      `Price Source` = buy_price_source,
+      `Day Low ($)` = day_low,
+      `Day High ($)` = day_high,
+      `Buy Price Status`,
+      `Invested Amount ($)` = invested_amount,
+      `Current Price ($)` = current_price,
+      `Current Value ($)` = current_value,
+      `Unrealized Return ($)`,
+      `Return (%)`
     )
 
-  portfolio_results[[i]] <- tracking_data
+  # 📊 Return GT Table
+  portfolio_summary_clean %>%
+    gt() %>%
+    tab_header(title = "📊 Portfolio Summary with % and $ Return") %>%
+    fmt_currency(columns = c(
+      `Buy Price ($)`, `Day Low ($)`, `Day High ($)`,
+      `Invested Amount ($)`, `Current Price ($)`, `Current Value ($)`
+    )) %>%
+    data_color(
+      columns = `Buy Price Status`,
+      fn = function(x) ifelse(x == "❌ Out of Range", "tomato", "lightgreen")
+    )
 }
+```
 
-portfolio_tracking_all <- bind_rows(portfolio_results)
+
+### 📋 Portfolio Summary (Latest Value & Return)
+
+```{r}
+# Step 1: Simulate or get user portfolio
+user_portfolio <- tidy_user_portfolio()
+
+# Step 2: Pull stock data
+stock_data <- get_stock_data(user_portfolio)
+
+# Step 3: Track portfolio returns
+portfolio_output <- track_portfolio_returns(user_portfolio, stock_data)
+
+# Extract outputs from the list
+portfolio_tracking_all <- portfolio_output$portfolio_tracking_all
+portfolio_summary <- portfolio_output$portfolio_summary
+skipped_stocks <- portfolio_output$skipped_stocks
+```
+
+### 📈 Stocks Skipped
+
+```{r}
+if (length(skipped_stocks) > 0) {
+  message("⚠ Skipped Stocks: ", paste(skipped_stocks, collapse = ", "))
+}
 ```
 
 ### 📋 Portfolio Summary (Latest Value & Return)
 
 ```{r}
-# Add position_id to tracking data
-portfolio_tracking_all <- portfolio_tracking_all %>%
-  mutate(position_id = paste0(stock, "_", buy_date))
-
-# Group by position_id (instead of just stock)
-portfolio_summary <- portfolio_tracking_all %>%
-  group_by(position_id) %>%
-  filter(date == max(date)) %>%
-  summarise(
-    stock = first(stock),
-    buy_date = first(buy_date),
-    quantity = first(quantity),
-    buy_price = first(buy_price),
-    invested_amount = first(invested_amount),
-    current_price = first(adjusted),
-    current_value = first(holding_value),
-    unrealized_return = first(unrealized_return),
-    return_percent = first(return_since_buy)
-  ) %>%
-  mutate(return_percent_label = scales::percent(return_percent))
-
-portfolio_summary
+# Step 4: Show portfolio summary table (rendered using gt)
+generate_portfolio_summary(portfolio_summary)
 ```
 
 ### 📈 Plot Return Since Buy Date (All Stocks)
 
 ```{r}
-# Base ggplot chart with distinct lines for same stock different buy-ins
-p <- ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
+ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
   geom_line(size = 1) +
   labs(title = "Cumulative Return Since Buy Date (By Position)", y = "Return", x = "Date") +
   scale_y_continuous(labels = scales::percent)
-
-# Make it interactive
-ggplotly(p, tooltip = c("x", "y", "color"))
 ```
 
 ### 📈 Interactive Plot Return for each Stock
@@ -188,14 +299,10 @@ total_portfolio <- portfolio_tracking_all %>%
   group_by(date) %>%
   summarise(total_value = sum(holding_value), .groups = "drop")
 
-# ggplot base
-p <- ggplot(total_portfolio, aes(x = date, y = total_value)) +
+ggplot(total_portfolio, aes(x = date, y = total_value)) +
   geom_line(color = "darkgreen", size = 1.2) +
   labs(title = "Total Portfolio Value Over Time", y = "Value (USD)", x = "Date") +
   scale_y_continuous(labels = scales::dollar)
-
-# Convert to interactive
-ggplotly(p, tooltip = c("x", "y"))
 ```
 
 ### ✅ Summary
@@ -205,13 +312,11 @@ ggplotly(p, tooltip = c("x", "y"))
 -   Return tracking since individual buy dates
 -   Portfolio-level return and value plots
 
-➡ Ready to convert into Shiny later using `selectInput()` and `dateInput()`!
-
 ```{r}
 colnames(portfolio_tracking_all)
 ```
 
-#### Time-series Price Trend
+#### Stock Price Trend
 
 ```{r}
 ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
@@ -225,13 +330,10 @@ ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
 stock_data <- stock_data %>%
   group_by(symbol) %>%
   arrange(date) %>%
-  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
-  ungroup()
-
-stock_data <- stock_data %>%
-  group_by(symbol) %>%
-  arrange(date) %>%
-  mutate(rolling_vol_20 = rollapply(daily_return, width = 20, FUN = sd, fill = NA, align = "right")) %>%
+  mutate(
+    daily_return = adjusted / lag(adjusted) - 1,
+    rolling_vol_20 = rollapply(daily_return, width = 20, FUN = sd, fill = NA, align = "right")
+  ) %>%
   ungroup()
 
 ggplot(stock_data %>% filter(!is.na(rolling_vol_20)), 
@@ -242,8 +344,7 @@ ggplot(stock_data %>% filter(!is.na(rolling_vol_20)),
     x = "Date",
     y = "Rolling Volatility (Std Dev)"
   ) +
-  scale_y_continuous(labels = scales::percent) +
-  theme_minimal()
+  scale_y_continuous(labels = scales::percent)
 ```
 
 Observations:
@@ -272,11 +373,20 @@ portfolio_tracking_all %>%
     sd_return = sd(return_since_buy, na.rm = TRUE),
     median_return = median(return_since_buy, na.rm = TRUE),
     min_return = min(return_since_buy, na.rm = TRUE),
-    max_return = max(return_since_buy, na.rm = TRUE)
+    max_return = max(return_since_buy, na.rm = TRUE),
+    .groups = "drop"
   )
 ```
 
-mean_return: Daily gain on average sd_return: Daily volatility median_return: Median min_return: Minimum return max_return: Maximum return
+mean_return: Daily gain on average 
+
+sd_return: Daily volatility 
+
+median_return: Median 
+
+min_return: Minimum return 
+
+max_return: Maximum return
 
 #### Cumulative Returns
 
@@ -367,6 +477,33 @@ ggplot(return_volatility_stats, aes(x = volatility, y = mean_return, label = sym
   theme_minimal()
 ```
 
+### Distribution of Buy-in over the Years
+
+```{r}
+# Step 1: Filter past 5 years only
+volume_5yr <- stock_data %>%
+  filter(date >= Sys.Date() %m-% years(5)) %>%
+  mutate(
+    year = year(date),
+    month = month(date, label = TRUE)
+  ) %>%
+  group_by(symbol, year, month) %>%
+  summarise(total_volume = sum(volume, na.rm = TRUE), .groups = "drop")
+
+# Step 2: Plot barchart faceted by stock, grouped by year
+ggplot(volume_5yr, aes(x = month, y = total_volume, fill = factor(year))) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ symbol, scales = "free_y") +
+  labs(
+    title = "📊 Monthly Trading Volume by Stock (Past 5 Years)",
+    x = "Month", y = "Total Volume",
+    fill = "Year"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal()
+```
+
+
 ## Data Overview (CDA)
 
 ### 1. Wilcoxon Rank-Sum Test (Median Comparison)
@@ -376,12 +513,21 @@ ggplot(return_volatility_stats, aes(x = volatility, y = mean_return, label = sym
 stock_a <- "AMZN"
 stock_b <- "TSLA"
 
-df_wilcox <- stock_data %>%
-  filter(symbol %in% c(stock_a, stock_b)) %>%
-  select(symbol, daily_return) %>%
-  filter(!is.na(daily_return))
+run_wilcoxon_test <- function(stock_a, stock_b, data = stock_data) {
+  df <- data %>%
+    filter(symbol %in% c(stock_a, stock_b)) %>%
+    select(symbol, daily_return) %>%
+    filter(!is.na(daily_return))
+  wilcox.test(daily_return ~ symbol, data = df)
+}
 
-wilcox.test(daily_return ~ symbol, data = df_wilcox)
+run_f_test <- function(stock1, stock2, data = stock_data) {
+  df <- data %>%
+    filter(symbol %in% c(stock1, stock2)) %>%
+    select(symbol, daily_return) %>%
+    filter(!is.na(daily_return))
+  var.test(daily_return ~ symbol, data = df)
+}
 ```
 
 Observation:
@@ -397,16 +543,27 @@ Observation:
 stock1 <- "AMZN"
 stock2 <- "MSFT"
 
-# Step 1: Prepare data for selected stocks
-var_test_data <- stock_data %>%
-  filter(symbol %in% c(stock1, stock2)) %>%
-  select(symbol, daily_return) %>%
-  filter(!is.na(daily_return))
+run_variance_test <- function(stock1, stock2, data = stock_data) {
+  # Step 1: Filter and prepare data
+  var_test_data <- data %>%
+    filter(symbol %in% c(stock1, stock2)) %>%
+    select(symbol, daily_return) %>%
+    filter(!is.na(daily_return))
+  
+  # Step 2: Run F-Test
+  if (nrow(var_test_data) == 0) {
+    message("No data found for variance comparison between ", stock1, " and ", stock2)
+    return(NULL)
+  }
+  
+  cat("📊 F-Test for Variance Comparison:\n")
+  cat(paste0("Comparing variance of daily returns: ", stock1, " vs ", stock2, "\n\n"))
+  test_result <- var.test(daily_return ~ symbol, data = var_test_data)
+  
+  return(test_result)
+}
 
-# Step 2: Perform F-test
-cat(paste0("Comparing Variance of Daily Returns: ", stock1, " vs ", stock2, "\n"))
-var_test_result <- var.test(daily_return ~ symbol, data = var_test_data)
-print(var_test_result)
+run_variance_test("AMZN", "MSFT")
 ```
 
 ### 3. Pearson Correlation Test (Relationship)
@@ -415,129 +572,177 @@ print(var_test_result)
 stock1 <- "AMZN"
 stock2 <- "MSFT"
 
-cor_data <- stock_data %>%
-  filter(symbol %in% c(stock1, stock2)) %>%
-  select(symbol, date, daily_return) %>%
-  pivot_wider(names_from = symbol, values_from = daily_return) %>%
-  filter(!is.na(.data[[stock1]]), !is.na(.data[[stock2]]))
+run_correlation_test <- function(stock1, stock2, data = stock_data) {
+  # Step 1: Filter and prepare data
+  cor_data <- data %>%
+    filter(symbol %in% c(stock1, stock2)) %>%
+    select(symbol, date, daily_return) %>%
+    filter(!is.na(daily_return)) %>%
+    pivot_wider(names_from = symbol, values_from = daily_return)
+  
+  # Step 2: Check if both columns exist and have sufficient data
+  if (!(stock1 %in% names(cor_data)) | !(stock2 %in% names(cor_data))) {
+    message("❌ One or both stocks not available in daily_return data.")
+    return(NULL)
+  }
+  
+  cor_data <- cor_data %>%
+    filter(!is.na(.data[[stock1]]), !is.na(.data[[stock2]]))
+  
+  if (nrow(cor_data) < 10) {
+    message("⚠ Not enough data to compute correlation between ", stock1, " and ", stock2)
+    return(NULL)
+  }
+  
+  # Step 3: Run correlation test
+  cat("📊 Pearson Correlation Test:\n")
+  cat(paste0("Testing daily return correlation: ", stock1, " vs ", stock2, "\n\n"))
+  result <- cor.test(cor_data[[stock1]], cor_data[[stock2]], method = "pearson")
+  return(result)
+}
 
-cor.test(cor_data[[stock1]], cor_data[[stock2]], method = "pearson")
+run_correlation_test("AMZN", "MSFT")
 ```
 
 ### 4. Multiple Linear Regression: Return \~ Volume + Market Index
 
 ```{r}
-# --- 📌 Simulated user inputs (can be replaced by Shiny inputs) ---
-target_stock <- "AMZN"
-market_index_stock <- "MSFT"
+run_linear_regression <- function(target_stock, market_index_stock, data = stock_data) {
+  # Step 1: Prepare dataset
+  reg_data <- data %>%
+    filter(symbol %in% c(target_stock, market_index_stock)) %>%
+    select(date, symbol, daily_return, volume) %>%
+    pivot_wider(names_from = symbol, values_from = c(daily_return, volume))
 
-# --- Step 1: Prepare dataset for regression ---
-reg_data <- stock_data %>%
-  filter(symbol %in% c(target_stock, market_index_stock)) %>%
-  select(date, symbol, daily_return, volume) %>%
-  pivot_wider(names_from = symbol, values_from = c(daily_return, volume))
+  # Step 2: Construct dynamic column names
+  target_return_col <- paste0("daily_return_", target_stock)
+  target_volume_col <- paste0("volume_", target_stock)
+  market_return_col <- paste0("daily_return_", market_index_stock)
 
-# --- Step 2: Rename columns dynamically ---
-# Construct variable names
-target_return_col <- paste0("daily_return_", target_stock)
-target_volume_col <- paste0("volume_", target_stock)
-market_return_col <- paste0("daily_return_", market_index_stock)
+  # Step 3: Rename for regression model
+  reg_data <- reg_data %>%
+    rename(
+      target_return = !!target_return_col,
+      target_volume = !!target_volume_col,
+      market_return = !!market_return_col
+    ) %>%
+    filter(!is.na(target_return), !is.na(target_volume), !is.na(market_return))
 
-# Rename for regression model
-reg_data <- reg_data %>%
-  rename(
-    target_return = !!target_return_col,
-    target_volume = !!target_volume_col,
-    market_return = !!market_return_col
-  ) %>%
-  filter(!is.na(target_return), !is.na(target_volume), !is.na(market_return))
+  # Step 4: Check if enough observations
+  if (nrow(reg_data) < 10) {
+    message("⚠ Not enough data to run regression for ", target_stock)
+    return(NULL)
+  }
 
-# --- Step 3: Run Multiple Linear Regression ---
-cat(paste0("📊 Multiple Linear Regression: ", target_stock, " ~ Volume + ", market_index_stock, " Return\n"))
-model <- lm(target_return ~ target_volume + market_return, data = reg_data)
-summary(model)
+  # Step 5: Run regression
+  cat(paste0("📊 Multiple Linear Regression: ", target_stock, " ~ Volume + ", market_index_stock, " Return\n\n"))
+  model <- lm(target_return ~ target_volume + market_return, data = reg_data)
+  return(summary(model))
+}
+
+
+run_linear_regression("AMZN", "MSFT")
 ```
 
 ### 5. ANOVA Test (One-way or Two-way)
 
 ```{r}
-# One-way ANOVA: Do average daily returns differ across your stocks?
-anova_data <- stock_data %>%
-  select(symbol, daily_return) %>%
-  filter(!is.na(daily_return))
+run_anova_test <- function(data = stock_data) {
+  anova_data <- data %>%
+    select(symbol, daily_return) %>%
+    filter(!is.na(daily_return))
 
-anova_model <- aov(daily_return ~ symbol, data = anova_data)
+  if (length(unique(anova_data$symbol)) < 2) {
+    message("⚠ Not enough groups to run one-way ANOVA.")
+    return(NULL)
+  }
 
-# Display ANOVA summary
-cat("📊 One-Way ANOVA: Daily Return ~ Stock\n")
-summary(anova_model)
+  anova_model <- aov(daily_return ~ symbol, data = anova_data)
+
+  cat("📊 One-Way ANOVA: Daily Return ~ Stock Symbol\n\n")
+  return(summary(anova_model))
+}
+
+run_anova_test()
 ```
 
 ### 5. Two-way ANOVA (Return \~ Symbol + Month)
 
 ```{r}
-# Add a "month" variable
-stock_data <- stock_data %>%
-  mutate(month = month(date, label = TRUE))
+run_two_way_anova_test <- function(data = stock_data) {
+  data <- data %>%
+    mutate(month = lubridate::month(date, label = TRUE))
 
-# Prepare data
-anova2_data <- stock_data %>%
-  select(symbol, daily_return, month) %>%
-  filter(!is.na(daily_return))
+  anova2_data <- data %>%
+    select(symbol, daily_return, month) %>%
+    filter(!is.na(daily_return))
 
-# Two-way ANOVA: Test effect of both stock and month
-anova2_model <- aov(daily_return ~ symbol + month, data = anova2_data)
+  if (length(unique(anova2_data$symbol)) < 2 || length(unique(anova2_data$month)) < 2) {
+    message("⚠ Not enough groups to run two-way ANOVA.")
+    return(NULL)
+  }
 
-# Display ANOVA summary
-cat("📊 Two-Way ANOVA: Daily Return ~ Stock + Month\n")
-summary(anova2_model)
+  anova2_model <- aov(daily_return ~ symbol + month, data = anova2_data)
+
+  cat("📊 Two-Way ANOVA: Daily Return ~ Stock Symbol + Month\n\n")
+  return(summary(anova2_model))
+}
+
+
+run_two_way_anova_test()
 ```
 
 ### 6. Event Study Analysis – Cumulative Abnormal Returns (CAR) during COVID (2020–2022)
 
 ```{r}
-# --- 📌 Simulated user input (replace with selectInput in Shiny later) ---
-target_stock <- "NVDA"
-market_index_stock <- "MSFT"
+run_event_study <- function(target_stock = "NVDA",
+                            market_index_stock = "MSFT",
+                            start_date = "2020-01-01",
+                            end_date = "2022-12-31") {
+  
+  # Step 1: Get data
+  event_stocks <- unique(c(target_stock, market_index_stock))
+  event_stock_data <- tq_get(event_stocks, from = start_date, to = end_date) %>%
+    group_by(symbol) %>%
+    arrange(date) %>%
+    mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
+    ungroup()
+  
+  # Step 2: Pivot to wide format
+  event_df <- event_stock_data %>%
+    select(date, symbol, daily_return) %>%
+    filter(!is.na(daily_return)) %>%
+    pivot_wider(names_from = symbol, values_from = daily_return)
+  
+  # Step 3: Rename dynamically
+  if (!target_stock %in% colnames(event_df) || !market_index_stock %in% colnames(event_df)) {
+    stop("❌ One or both selected stocks not available in event return data.")
+  }
 
-# Step 1: Get event period stock data (COVID years 2020–2022)
-event_stocks <- unique(c(target_stock, market_index_stock))
+  colnames(event_df)[which(colnames(event_df) == target_stock)] <- "target_return"
+  colnames(event_df)[which(colnames(event_df) == market_index_stock)] <- "market_return"
+  
+  # Step 4: OLS Regression for expected return
+  model <- lm(target_return ~ market_return, data = event_df)
+  
+  # Step 5: Calculate abnormal returns & CAR
+  event_df$expected_return <- predict(model, newdata = event_df)
+  event_df <- event_df %>%
+    mutate(
+      abnormal_return = target_return - expected_return,
+      CAR = cumsum(abnormal_return)
+    )
+  
+  # Step 6: Plot CAR
+  plot_ly(event_df, x = ~date, y = ~CAR, type = "scatter", mode = "lines",
+          line = list(color = "darkblue")) %>%
+    layout(
+      title = paste0(target_stock, " Cumulative Abnormal Return (", start_date, " to ", end_date, ")"),
+      xaxis = list(title = "Date"),
+      yaxis = list(title = "Cumulative Abnormal Return (CAR)")
+    )
+}
 
-event_stock_data <- tq_get(event_stocks, from = "2020-01-01", to = "2022-12-31") %>%
-  group_by(symbol) %>%
-  arrange(date) %>%
-  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
-  ungroup()
-
-# Step 2: Pivot wider for return matrix
-event_df <- event_stock_data %>%
-  select(date, symbol, daily_return) %>%
-  filter(!is.na(daily_return)) %>%
-  pivot_wider(names_from = symbol, values_from = daily_return)
-
-# Step 3: Rename columns dynamically
-target_col <- target_stock
-market_col <- market_index_stock
-colnames(event_df)[which(colnames(event_df) == target_stock)] <- "target_return"
-colnames(event_df)[which(colnames(event_df) == market_index_stock)] <- "market_return"
-
-# Step 4: Estimate expected returns (OLS regression)
-model <- lm(target_return ~ market_return, data = event_df)
-
-# Step 5: Compute abnormal return & CAR
-event_df$expected_return <- predict(model, newdata = event_df)
-event_df <- event_df %>%
-  mutate(
-    abnormal_return = target_return - expected_return,
-    CAR = cumsum(abnormal_return)
-  )
-
-# Step 6: Plot CAR interactively
-plot_ly(event_df, x = ~date, y = ~CAR, type = "scatter", mode = "lines",
-        line = list(color = "darkblue")) %>%
-  layout(
-    title = paste(target_stock, "Cumulative Abnormal Return (2020–2022)"),
-    xaxis = list(title = "Date"),
-    yaxis = list(title = "Cumulative Abnormal Return (CAR)")
-  )
+run_event_study("AMZN", "MSFT")           # Default COVID period
+run_event_study("TSLA", "SPY", "2019-01-01", "2021-12-31")  # Custom
 ```
