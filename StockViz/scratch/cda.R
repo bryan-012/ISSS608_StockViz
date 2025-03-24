@@ -1,4 +1,3 @@
-# cda.R
 library(shiny)
 library(tidyquant)
 library(dplyr)
@@ -89,7 +88,6 @@ ui <- fluidPage(
   )
 )
 
-# --- SERVER Module ---
 server <- function(input, output, session) {
   rv <- reactiveValues(
     portfolio_input = data.frame(symbol=character(), buy_date=as.Date(character()), quantity=numeric(), buy_price=numeric(), stringsAsFactors=FALSE),
@@ -424,7 +422,7 @@ server <- function(input, output, session) {
   output$rolling_correlation_chart <- renderPlot({
     plot_rolling_correlation(input$cda_stock1, input$cda_stock2, rv$stock_data, window = 30)
   })
-  
+
   output$event_study_plot <- renderPlotly({
     df <- tq_get(c(input$cda_stock1, input$cda_stock2), from="2020-01-01", to="2022-12-31") %>%
       group_by(symbol) %>%
@@ -528,3 +526,5 @@ server <- function(input, output, session) {
     plot_regression_coefficients(input$cda_stock1, input$cda_stock2, data = rv$stock_data)
   })
 }
+
+shinyApp(ui, server)
