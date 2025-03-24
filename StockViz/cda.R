@@ -1,4 +1,3 @@
-# cda.R
 library(shiny)
 library(tidyquant)
 library(dplyr)
@@ -15,101 +14,87 @@ library(broom)
 library(ggstatsplot)
 
 
-ui <- fluidPage(
-  titlePanel("📈 Dynamic Stock Portfolio Analyzer"),
-  sidebarLayout(
-    sidebarPanel(
-      width = 3,
-      tags$head(
-        tags$style(HTML("
-      .form-group label, .shiny-input-container {
-        font-size: 13px;
-      }
-      .shiny-input-container {
-        margin-bottom: 8px;
-      }
-      .btn {
-        font-size: 13px;
-        padding: 4px 8px;
-      }
-      .dataTables_wrapper {
-        font-size: 12px;
-      }
-    "))
+cda_ui <- function(id) {
+  ns <- NS(id)
+  
+  fluidPage(
+    fluidRow(
+      column(3,
+             h4("User Portfolio Input"),
+             textInput(ns("stock_symbol"), "Stock Symbol (e.g., AAPL)", value = ""),
+             numericInput(ns("quantity"), "Number of Shares", value = 10, min = 1),
+             dateInput(ns("buy_date"), "Buy Date", value = Sys.Date() - 30),
+             textInput(ns("buy_price"), "Buy Price (optional)", value = ""),
+             actionButton(ns("add_stock"), "+ Add to Portfolio", class = "btn btn-primary"),
+             actionButton(ns("remove_selected"), "❌ Remove Selected Entries", class = "btn btn-danger"),
+             br(),
+             DTOutput(ns("portfolio_table")),
+             br(),
+             downloadButton(ns("download_summary"), "📄 Download Portfolio Summary")
       ),
-      h4("User Portfolio Input", style = "font-size: 16px;"),
-      textInput("stock_symbol", "Stock Symbol (e.g., AAPL)", value = "", width = "100%"),
-      numericInput("quantity", "Number of Shares", value = 10, min = 1, width = "100%"),
-      dateInput("buy_date", "Buy Date", value = Sys.Date() - 30, width = "100%"),
-      
-      # 👉 Tidy Buy Price in one row
-      div(
-        style = "display: flex; flex-direction: column;",
-        textInput("buy_price", "Buy Price (optional)", value = "", width = "100%")
-      ),
-      
-      actionButton("add_stock", "+ Add to Portfolio", class = "btn btn-primary", width = "100%"),
-      actionButton("remove_selected", "❌ Remove Selected Entries", class = "btn btn-danger", width = "100%"),
-      
-      br(), DTOutput("portfolio_table"), br(),
-      downloadButton("download_summary", "📄 Download Portfolio Summary", class = "btn btn-default", style="width:100%;")
-    ),
-    mainPanel(
-      width = 9,
-      tabsetPanel(
-        tabPanel("📊 EDA",
-                 plotlyOutput("line_chart"),
-                 plotlyOutput("total_portfolio_plot"),
-                 plotOutput("rolling_vol_plot"),
-                 plotOutput("daily_return_corr_plot"),
-                 plotOutput("return_volatility_plot"),
-                 plotOutput("monthly_volume_plot")
-        ),
-        tabPanel("📋 Portfolio Summary",
-                 gt_output("portfolio_summary_table")
-        ),
-        tabPanel("📈 CDA",
-                 selectInput("cda_stock1", "Select Stock 1:", choices = NULL),
-                 selectInput("cda_stock2", "Select Stock 2:", choices = NULL),
-                 verbatimTextOutput("wilcox_test"),
-                 plotOutput("wilcox_plot"),                 # ✅ ADD THIS
-                 verbatimTextOutput("f_test"),
-                 plotOutput("correlation_chart"),           # ✅ ADD THIS
-                 plotOutput("rolling_correlation_chart"),   # ✅ ADD THIS
-                 verbatimTextOutput("regression_summary"),
-                 plotOutput("regression_diagnostic_plot"),  # ✅ ADD THIS
-                 plotOutput("regression_coef_plot"),        # ✅ ADD THIS
-                 plotOutput("return_density_plot"),         # ✅ ADD THIS
-                 verbatimTextOutput("anova1"),
-                 verbatimTextOutput("anova2"),
-                 plotlyOutput("event_study_plot")
-        )
+      column(9,
+             tabsetPanel(
+               tabPanel("📊 EDA",
+                        plotlyOutput(ns("line_chart")),
+                        plotlyOutput(ns("total_portfolio_plot")),
+                        plotOutput(ns("rolling_vol_plot")),
+                        plotOutput(ns("daily_return_corr_plot")),
+                        plotOutput(ns("return_volatility_plot")),
+                        plotOutput(ns("monthly_volume_plot"))
+               ),
+               tabPanel("📋 Portfolio Summary",
+                        gt_output(ns("portfolio_summary_table"))
+               ),
+               tabPanel("📈 CDA",
+                        selectInput(ns("cda_stock1"), "Select Stock 1:", choices = NULL),
+                        selectInput(ns("cda_stock2"), "Select Stock 2:", choices = NULL),
+                        verbatimTextOutput(ns("wilcox_test")),
+                        plotOutput(ns("wilcox_plot")),
+                        verbatimTextOutput(ns("f_test")),
+                        plotOutput(ns("correlation_chart")),
+                        plotOutput(ns("rolling_correlation_chart")),
+                        verbatimTextOutput(ns("regression_summary")),
+                        plotOutput(ns("regression_diagnostic_plot")),
+                        plotOutput(ns("regression_coef_plot")),
+                        plotOutput(ns("return_density_plot")),
+                        verbatimTextOutput(ns("anova1")),
+                        verbatimTextOutput(ns("anova2")),
+                        plotlyOutput(ns("event_study_plot"))
+               )
+             )
       )
     )
   )
-)
+}
 
-# --- SERVER Module ---
-server <- function(input, output, session) {
-  rv <- reactiveValues(
+cda_server <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+
+    rv <- reactiveValues(
     portfolio_input = data.frame(symbol=character(), buy_date=as.Date(character()), quantity=numeric(), buy_price=numeric(), stringsAsFactors=FALSE),
     stock_data = NULL,
     portfolio_tracking_all = NULL,
     portfolio_summary = NULL
   )
   
-  observeEvent(input$add_stock, {
-    buy_price <- ifelse(input$buy_price == "", NA, as.numeric(input$buy_price))
-    new_entry <- data.frame(
-      symbol = toupper(input$stock_symbol),
-      buy_date = input$buy_date,
-      quantity = input$quantity,
-      buy_price = buy_price
-    )
-    rv$portfolio_input <- rbind(rv$portfolio_input, new_entry)
-    updateSelectInput(session, "cda_stock1", choices = unique(rv$portfolio_input$symbol))
-    updateSelectInput(session, "cda_stock2", choices = unique(rv$portfolio_input$symbol))
-  })
+    observeEvent(input$add_stock, {
+      buy_price <- ifelse(input$buy_price == "", NA, as.numeric(input$buy_price))
+      new_entry <- data.frame(
+        symbol = toupper(input$stock_symbol),
+        buy_date = input$buy_date,
+        quantity = input$quantity,
+        buy_price = buy_price
+      )
+      
+      rv$portfolio_input <- rbind(rv$portfolio_input, new_entry)
+      
+      # ✅ FIX: Wrap inside isolate to avoid error when accessing reactiveValues directly
+      isolate({
+        updateSelectInput(session, "cda_stock1", choices = unique(rv$portfolio_input$symbol))
+        updateSelectInput(session, "cda_stock2", choices = unique(rv$portfolio_input$symbol))
+      })
+    })
   
   output$portfolio_table <- renderDT({
     df <- rv$portfolio_input
@@ -147,7 +132,7 @@ server <- function(input, output, session) {
     }
   })
   
-  observe({
+  observeEvent(rv$portfolio_input, {
     if (nrow(rv$portfolio_input) == 0) return(NULL)
     tryCatch({
       stock_symbols <- unique(rv$portfolio_input$symbol)
@@ -214,7 +199,10 @@ server <- function(input, output, session) {
   })
   
   output$portfolio_summary_table <- render_gt({
-    if (is.null(rv$portfolio_summary)) return(NULL)
+    req(rv$portfolio_summary)
+    if (nrow(rv$portfolio_summary) == 0) {
+      return(gt(data.frame(Note = "No summary data available yet.")))
+    }
     
     df <- rv$portfolio_summary %>%
       mutate(
@@ -256,7 +244,6 @@ server <- function(input, output, session) {
         )
       )
   })
-  
   
   
   # ==== EDA Charts ====
@@ -527,4 +514,5 @@ server <- function(input, output, session) {
   output$regression_coef_plot <- renderPlot({
     plot_regression_coefficients(input$cda_stock1, input$cda_stock2, data = rv$stock_data)
   })
+})
 }
