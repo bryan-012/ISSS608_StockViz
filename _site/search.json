@@ -16,9 +16,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "ISS608 Group Project StockViz",
+    "title": "ISSS608 - Stock Viz",
     "section": "",
-    "text": "Welcome to Project StockViz !"
+    "text": "&lt;div class=“hero-banner”&gt;\n&lt;img src=“images/stockviz.webp” /&gt;\n&lt;/div&gt;"
   },
   {
     "objectID": "Proposal/Proposal.html",
@@ -313,5 +313,26 @@
     "title": "Time Series Forecasting",
     "section": "Variable Importance",
     "text": "Variable Importance\n\nlibrary(vip)\n\nworkflow_fit_xgboost %&gt;%\n  extract_fit_parsnip() %&gt;%\n  vip(num_features = 15) +\n  ggtitle(\"XGBoost Feature Importance\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nInsights\n\n\n\nAccording to our XGBoost model, the year and seasonality of the year (day-of-year) have the strongest influence on stock price, while specific month dummies have little predictive value."
+  },
+  {
+    "objectID": "index.html#welcome-to-stockviz",
+    "href": "index.html#welcome-to-stockviz",
+    "title": "ISSS608 Group Project: StockViz",
+    "section": "Welcome to StockViz",
+    "text": "Welcome to StockViz\nThis website showcases a full-fledged Shiny application that lets users: - Analyze stock technical indicators interactively - Forecast future prices using time series and ML models - Compare and evaluate forecasting techniques\nStart by exploring the 📊 Technical Analysis or 📈 Forecasting Module."
+  },
+  {
+    "objectID": "minutes.html",
+    "href": "minutes.html",
+    "title": "Meeting Minutes",
+    "section": "",
+    "text": "Meeting Minutes 1\nMarch 05, 2025\n21:00 - 22:00\nTeams\nOpening\nFirst meeting to discuss how we will start this project.\nPresent\nBryan Tze Kin Chang\nJustin Lim Zheng Han\nAgenda\n• We decided on a group project topic, stock visualization application and call ourselves Stock Viz\n• App is aimed to be a personalized stock app that could potentially showcase portfolios, give recommendations, explore stocks or forecasting\n• Justin will do personal stock portfolio and Bryan will do technical analysis indicators with forecasting\n• We split the proposal writing that Justin will do overview & motivation, problem statement and Bryan will do methodology and dataset and the rest will be split between the two of us.\n• We created the github repository and made sure we were linked properly.\n\n\n\nMeeting Minutes 2\nMar 22, 2025\n16:00 – 17:00\nSMU\nOpening\nAfter updating and discussing our project throughout the week online, we decided to meet offline on Mar 22, 2025.\nPresent\nBryan Tze Kin Chang\nJustin Lim Zheng Han\nAgenda\n• We received our proposal feedback from Prof and needed to discuss on the next steps and properly define who would oversee which module.\n• Bryan will oversee Time Series Analysis module and Justin will oversee Confirmatory Analysis.\n• We have agreed during a quick catchup in class last week that we would have our prototypes ready by this meeting.\n• We went through each other’s prototype and introduced the analysis methods we have explored.\n• We decided that we should not include so many types of analysis into our R Shiny app.\n• Our next steps would be to create the R Shiny app and integrate our modules together. For Next Meeting\n• Finish our complete R Shiny for our own modules\n• Discuss on starting the poster and UI design"
+  },
+  {
+    "objectID": "acknowledgement.html",
+    "href": "acknowledgement.html",
+    "title": "Acknowledgement",
+    "section": "",
+    "text": "The team consists of two postgraduate students from Singapore Management University (SMU), Master of IT in Business (MITB), Analytics track:\n\nBryan Tze Kin Chang\nJustin Lim Zheng Han\n\nWe would like to thank Prof Dr. Kam Tin Seong for the lessons and guidance provided throughout the duration of ISSS608 Visual Analytics & Applications."
   }
 ]
