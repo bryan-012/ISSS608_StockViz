@@ -12,11 +12,12 @@ library(DT)
 library(rsample)
 library(tidyquant)
 
+# ---------- UI MODULE ----------
 forecast_ui <- function(id) {
   ns <- NS(id)
   
   fluidPage(
-    titlePanel("Stock Forecasting App"),
+    titlePanel("Stock Forecasting"),
     sidebarLayout(
       sidebarPanel(
         textInput(ns("stock"), "Stock Symbol:", value = "AAPL"),
@@ -63,6 +64,7 @@ forecast_ui <- function(id) {
   )
 }
 
+# ---------- SERVER MODULE ----------
 forecast_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     

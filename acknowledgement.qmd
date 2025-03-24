@@ -1,0 +1,12 @@
+---
+title: "Acknowledgement"
+format: html
+---
+
+The team consists of two postgraduate students from Singapore Management University (SMU), Master of IT in Business (MITB), Analytics track:
+
+-   Bryan Tze Kin Chang
+
+-   Justin Lim Zheng Han
+
+We would like to thank Prof Dr. Kam Tin Seong for the lessons and guidance provided throughout the duration of ISSS608 Visual Analytics & Applications.

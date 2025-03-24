@@ -3,25 +3,28 @@
 library(shiny)
 library(quantmod)
 library(TTR)
+library(tidyquant)
 library(ggplot2)
 library(plotly)
-library(tidyquant)
 
+# ---------- UI MODULE ----------
 technical_ui <- function(id) {
   ns <- NS(id)
   
   fluidPage(
+    titlePanel("Technical Analysis"),
     fluidRow(
-      box(title = "User Input", status = "primary", solidHeader = TRUE, width = 3,
+      column(
+        width = 3,
+        wellPanel(
           textInput(ns("stock"), "Enter Stock Symbol:", "AAPL"),
-          dateRangeInput(ns("date"), "Select Date Range:", start = Sys.Date() - 365, end = Sys.Date()),
+          dateRangeInput(ns("date"), "Select Date Range:", 
+                         start = Sys.Date() - 365, end = Sys.Date()),
           checkboxGroupInput(ns("indicators"), "Select Technical Indicators:", 
                              choices = list("SMA" = "SMA", "EMA" = "EMA", 
                                             "RSI" = "RSI", "Bollinger Bands" = "BB", 
                                             "MACD" = "MACD"),
                              selected = c("SMA", "EMA")),
-          
-          # Customization Sliders
           sliderInput(ns("sma_period"), "SMA Period:", min = 5, max = 200, value = 20),
           sliderInput(ns("ema_period"), "EMA Period:", min = 5, max = 200, value = 20),
           sliderInput(ns("bb_std"), "Bollinger Bands Std Dev:", min = 1, max = 3, value = 2, step = 0.1),
@@ -29,15 +32,20 @@ technical_ui <- function(id) {
           sliderInput(ns("rsi_overbought"), "RSI Overbought Threshold:", min = 50, max = 90, value = 70),
           sliderInput(ns("rsi_oversold"), "RSI Oversold Threshold:", min = 10, max = 50, value = 30),
           actionButton(ns("analyze"), "Analyze")
+        )
       ),
-      box(title = "Technical Indicators Chart", status = "info", width = 9,
-          plotlyOutput(ns("price_chart")),
-          plotlyOutput(ns("macd_rsi_chart"))
+      column(
+        width = 9,
+        h4("Price Chart with Indicators"),
+        plotlyOutput(ns("price_chart"), height = "400px"),
+        h4("MACD & RSI Chart"),
+        plotlyOutput(ns("macd_rsi_chart"), height = "300px")
       )
     )
   )
 }
 
+# ---------- SERVER MODULE ----------
 technical_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     

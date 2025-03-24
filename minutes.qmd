@@ -1,0 +1,72 @@
+---
+title: "Meeting Minutes"
+format: html
+---
+
+# Meeting Minutes 1
+
+March 05, 2025
+
+21:00 - 22:00
+
+Teams
+
+**Opening**
+
+First meeting to discuss how we will start this project.
+
+**Present**
+
+Bryan Tze Kin Chang
+
+Justin Lim Zheng Han
+
+**Agenda**
+
+• We decided on a group project topic, stock visualization application and call ourselves Stock Viz
+
+• App is aimed to be a personalized stock app that could potentially showcase portfolios, give recommendations, explore stocks or forecasting
+
+• Justin will do personal stock portfolio and Bryan will do technical analysis indicators with forecasting
+
+• We split the proposal writing that Justin will do overview & motivation, problem statement and Bryan will do methodology and dataset and the rest will be split between the two of us.
+
+• We created the github repository and made sure we were linked properly.
+
+------------------------------------------------------------------------
+
+# Meeting Minutes 2
+
+Mar 22, 2025
+
+16:00 – 17:00
+
+SMU
+
+**Opening**
+
+After updating and discussing our project throughout the week online, we decided to meet offline on Mar 22, 2025.
+
+**Present**
+
+Bryan Tze Kin Chang
+
+Justin Lim Zheng Han
+
+**Agenda**
+
+• We received our proposal feedback from Prof and needed to discuss on the next steps and properly define who would oversee which module.
+
+• Bryan will oversee Time Series Analysis module and Justin will oversee Confirmatory Analysis.
+
+• We have agreed during a quick catchup in class last week that we would have our prototypes ready by this meeting.
+
+• We went through each other’s prototype and introduced the analysis methods we have explored.
+
+• We decided that we should not include so many types of analysis into our R Shiny app.
+
+• Our next steps would be to create the R Shiny app and integrate our modules together. For Next Meeting
+
+• Finish our complete R Shiny for our own modules
+
+• Discuss on starting the poster and UI design

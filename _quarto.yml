@@ -2,22 +2,33 @@ project:
   type: website
 
 website:
-  title: "ISSS608 - Stock Viz"
+  title: "Stock Viz"
   navbar:
+
     left:
-          - href: "Proposal/Proposal.html"
-            text: "Proposal"
-          - text: "Prototype"
+          - href: index.qmd
+            text: "🏠 Home"
+          - text: "🔎 Overview "
+          - text: "📦 Archives"
+            menu:
+            - href: "Proposal/Proposal.html"
+              text: "Proposal"
+            - href: "minutes.html"
+              text: "Meeting Minutes"
+            - href: "acknowledgement.html"
+              text: "Acknowledgement & Team"
+          - text: "📱 Shiny App"
+            href: "https://changbtk.shinyapps.io/StockViz/"
+          - text: "🧪 Prototype"
             menu: 
-            - text: "Time Series Forecasting"
+            - text: "📈 Time Series Forecasting"
               href: "Prototype/forecasting.html"
             - text: "Confirmatory Data Analysis"
               href: "Prototype/confirmatory_analysis.html"
+          - href: "userguide.pdf"
+            text: "📘 User Guide"
+
           
-      
-    right:
-      - href: index.qmd
-        text: Home
 
 format:
   html:

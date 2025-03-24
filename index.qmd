@@ -1,5 +1,7 @@
 ---
-title: "ISS608 Group Project StockViz"
+page-layout: full
 ---
 
-Welcome to Project StockViz !
+::: hero-banner
+<img src="images/stockviz.webp"/>
+:::
