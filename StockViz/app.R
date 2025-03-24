@@ -2,7 +2,7 @@ library(shiny)
 
 source("technical.R")
 source("forecast.R")
-source("cda_module.R")
+source("cda.R")
 
 ui <- navbarPage(
   title = "Stock Analytics App",
@@ -13,7 +13,7 @@ ui <- navbarPage(
   tabPanel("Time Series Forecasting", 
            forecast_ui("forecast_module")),
   
-  tabPanel("CDA + EDA",  # 👈 Add new tab
+  tabPanel("CDA + EDA",
            cda_ui("cda_module"))
 )
 
