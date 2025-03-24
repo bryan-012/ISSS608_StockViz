@@ -14,13 +14,13 @@ ui <- navbarPage(
            forecast_ui("forecast_module")),
   
   tabPanel("CDA + EDA",
-           cda_ui("cda_module"))
+           cda_ui("cda"))
 )
 
 server <- function(input, output, session) {
   technical_server("tech_module")
   forecast_server("forecast_module")
-  cda_server("cda_module")
+  cda_server("cda")
 }
 
 shinyApp(ui, server)
