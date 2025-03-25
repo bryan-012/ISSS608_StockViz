@@ -249,6 +249,9 @@ cda_server <- function(id) {
   # ==== EDA Charts ====
   output$line_chart <- renderPlotly({
     if (is.null(rv$portfolio_tracking_all)) return(NULL)
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     p <- ggplot(rv$portfolio_tracking_all, aes(x = date, y = holding_value, color = position_id)) +
       geom_line(size=1) +
       labs(title="Stock Value Over Time", x="Date", y="Holding Value ($)") +
@@ -258,6 +261,9 @@ cda_server <- function(id) {
   
   output$total_portfolio_plot <- renderPlotly({
     if (is.null(rv$portfolio_tracking_all)) return(NULL)
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- rv$portfolio_tracking_all %>% group_by(date) %>% summarise(total_value = sum(holding_value), .groups = "drop")
     p <- ggplot(df, aes(x=date, y=total_value)) +
       geom_line(color="forestgreen") +
@@ -267,6 +273,9 @@ cda_server <- function(id) {
   })
   
   output$rolling_vol_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- rv$stock_data %>%
       group_by(symbol) %>%
       arrange(date) %>%
@@ -279,6 +288,9 @@ cda_server <- function(id) {
   })
   
   output$daily_return_corr_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- rv$stock_data %>% select(date, symbol, daily_return) %>%
       filter(!is.na(daily_return)) %>%
       pivot_wider(names_from = symbol, values_from = daily_return)
@@ -286,6 +298,9 @@ cda_server <- function(id) {
   })
   
   output$return_volatility_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- rv$stock_data %>%
       group_by(symbol) %>%
       summarise(mean_return=mean(daily_return, na.rm=TRUE),
@@ -299,6 +314,9 @@ cda_server <- function(id) {
   })
   
   output$monthly_volume_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- rv$stock_data %>%
       filter(date >= Sys.Date() %m-% years(5)) %>%
       mutate(year=year(date), month=month(date, label=TRUE)) %>%
@@ -314,6 +332,9 @@ cda_server <- function(id) {
   # ==== CDA Tests ====
   # Visualize Wilcoxon Test across Stocks — e.g., AAPL vs GOOG daily returns
   output$wilcox_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     req(input$cda_stock1, input$cda_stock2)
     
     df <- rv$stock_data %>% 
@@ -337,6 +358,9 @@ cda_server <- function(id) {
   
   #1 Daily Return Correlation
   plot_correlation_chart <- function(stock1, stock2, data = stock_data) {
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     cor_data <- data %>%
       filter(symbol %in% c(stock1, stock2)) %>%
       select(symbol, date, daily_return) %>%
@@ -375,6 +399,9 @@ cda_server <- function(id) {
   
   #2 Rolling Correlation
   plot_rolling_correlation <- function(stock1, stock2, data = stock_data, window = 30) {
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     cor_data <- data %>%
       filter(symbol %in% c(stock1, stock2)) %>%
       select(symbol, date, daily_return) %>%
@@ -409,10 +436,16 @@ cda_server <- function(id) {
       theme_minimal()
   }
   output$rolling_correlation_chart <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     plot_rolling_correlation(input$cda_stock1, input$cda_stock2, rv$stock_data, window = 30)
   })
   
   output$event_study_plot <- renderPlotly({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     df <- tq_get(c(input$cda_stock1, input$cda_stock2), from="2020-01-01", to="2022-12-31") %>%
       group_by(symbol) %>%
       arrange(date) %>%
@@ -462,6 +495,9 @@ cda_server <- function(id) {
   }
   
   output$regression_diagnostic_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     plot_regression_diagnostics(input$cda_stock1, input$cda_stock2, data = rv$stock_data)
   })
   
@@ -483,6 +519,9 @@ cda_server <- function(id) {
   
   
   plot_regression_coefficients <- function(target_stock, market_index_stock, data = stock_data) {
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     reg_data <- data %>%
       filter(symbol %in% c(target_stock, market_index_stock)) %>%
       select(date, symbol, daily_return, volume) %>%
@@ -512,6 +551,9 @@ cda_server <- function(id) {
   }
   
   output$regression_coef_plot <- renderPlot({
+    validate(
+      need(!is.null(data) && nrow(data) > 0, "No data yet. Please add stocks to view the chart.")
+    )
     plot_regression_coefficients(input$cda_stock1, input$cda_stock2, data = rv$stock_data)
   })
 })
