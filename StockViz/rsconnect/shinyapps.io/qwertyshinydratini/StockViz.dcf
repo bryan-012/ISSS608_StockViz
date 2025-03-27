@@ -5,7 +5,7 @@ account: qwertyshinydratini
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14325695
-bundleId: 9996059
+bundleId: 10001649
 url: https://qwertyshinydratini.shinyapps.io/StockViz/
 version: 1
 asMultiple: FALSE
