@@ -551,4 +551,7 @@ cda_server <- function(id) {
           fill = "Stock Symbol"
         ) +
         theme_minimal()
-    })
+})
+  })
+}
+
