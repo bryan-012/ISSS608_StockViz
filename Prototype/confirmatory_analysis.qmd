@@ -1,8 +1,8 @@
 ---
-title: "Confirmatory Analysis"
+title: "Take-home Exercise 03 - StockViz - Confirmatory Analysis"
 author: "Justin Lim Zheng Han"
 date: "March 19, 2025"
-date-modified: "last-modified" 
+date-modified: "last-modified"  
 ---
 
 # Confirmatory Data Analysis
@@ -28,6 +28,10 @@ Our stock data will be retrieved from Yahoo Finance using quantmod. In Shiny App
 ### 📦 Simulated User Portfolio Input
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 # Simulate user portfolio (can be dynamic in Shiny later) 
 user_portfolio <- data.frame(
   symbol = c("AAPL", "MSFT", "TSLA", "NVDA", "AMZN", "NVDA"),
@@ -50,7 +54,11 @@ From the selected stocks, EDA will run accordingly.
 
 #### 📦 Simulated User Portfolio Input
 
+After user adds their chosen stocks into their portfolio, it will be added to a dataframe.
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # 📦 Function: Prepare User Portfolio Input
 tidy_user_portfolio <- function() {
   data.frame(
@@ -64,7 +72,11 @@ tidy_user_portfolio <- function() {
 
 ### 📊 Calculate Returns and Current Values
 
+From the date and buy-in price of the stocks, the current returns will be calculated and added to the results column.
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # 📈 Pull Stock Data
 get_stock_data <- function(user_portfolio) {
   data_start <- min(user_portfolio$buy_date, na.rm = TRUE)
@@ -86,9 +98,10 @@ get_stock_data <- function(user_portfolio) {
 }
 ```
 
-
-
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # Initialize storage lists
 track_portfolio_returns <- function(user_portfolio, stock_data) {
   portfolio_results <- list()
@@ -180,7 +193,12 @@ track_portfolio_returns <- function(user_portfolio, stock_data) {
 
 #### Portfolio Summary
 
+From the results, we will tabulate it and put it into a Portfolio Summary. This allows the user to have a quick overview of their current holdings. 
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # Clean summary
 generate_portfolio_summary <- function(portfolio_summary) {
   portfolio_summary_clean <- portfolio_summary %>%
@@ -227,7 +245,12 @@ generate_portfolio_summary <- function(portfolio_summary) {
 
 ### 📋 Portfolio Summary (Latest Value & Return)
 
+If the user accidentally keys in the wrong buy date, for example AAPL on 2022-01-15, which is a non-trading day. The system knows and will generate a warning to the user and this entry will not be added to the stock analysis.
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # Step 1: Simulate or get user portfolio
 user_portfolio <- tidy_user_portfolio()
 
@@ -245,13 +268,33 @@ skipped_stocks <- portfolio_output$skipped_stocks
 
 ### 📈 Stocks Skipped
 
+This code generates a message for the stocks being skipped.
+
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 if (length(skipped_stocks) > 0) {
   message("⚠ Skipped Stocks: ", paste(skipped_stocks, collapse = ", "))
 }
 ```
 
 ### 📋 Portfolio Summary (Latest Value & Return)
+
+This Portfolio Summary generated shows all the stocks added by the user. If the user could not remember the price it was bought, they can leave it blank and the system will use the median price. 
+
+Column: 
+- Stock: Stock Symbol
+- Buy Date: Buy-in Date
+- Quantity: Number of stocks 
+- Price Source: User input or Median Price if buy price is left blank.
+- Day's low and high price: User can gauge if the price they bought in is fair. The next column checks if the buy in price is within range. 
+- Buy Price Status: Checks if buy price is within valid day range.
+- Invested Amount: Total amount invested (Buy price x quantity)
+- Current Price: Current stock price
+- Current Value: Current holding value
+- Unrealized Return: Current profit or loss (Current Value - Invested Amount)
+- Return (%): Percentage of profit or loss
 
 ```{r}
 # Step 4: Show portfolio summary table (rendered using gt)
@@ -260,16 +303,61 @@ generate_portfolio_summary(portfolio_summary)
 
 ### 📈 Plot Return Since Buy Date (All Stocks)
 
+This chart shows the cumulative return of each stock since its purchase date.
+
 ```{r}
+#| echo: false
+
 ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
+  labs(title = "Cumulative Return Since Buy Date (By Position)", y = "Return", x = "Date") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
+ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
+  geom_line(linewidth = 1) +
   labs(title = "Cumulative Return Since Buy Date (By Position)", y = "Return", x = "Date") +
   scale_y_continuous(labels = scales::percent)
 ```
 
 ### 📈 Interactive Plot Return for each Stock
 
+This chart shows the interactive chart of return for each stock. User is able to see the price trend of each stock and to find the best exit point. They will also be able to see the trend of each stock.
 ```{r}
+#| echo: false
+
+plot_ly(
+  data = portfolio_tracking_all,
+  x = ~date,
+  y = ~holding_value,
+  color = ~position_id,
+  type = 'scatter',
+  mode = 'lines',
+  text = ~paste0(
+    "Stock: ", stock, "<br>",
+    "Buy Date: ", buy_date, "<br>",
+    "Date: ", format(date, "%Y-%m-%d"), "<br>",
+    "Value: $", format(round(holding_value, 2), big.mark = ",")
+  ),
+  hoverinfo = "text"
+) %>%
+  layout(
+    title = "Individual Stock Value Over Time (By Buy-in Position)",
+    xaxis = list(title = "Date"),
+    yaxis = list(title = "Holding Value (USD)")
+  )
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 plot_ly(
   data = portfolio_tracking_all,
   x = ~date,
@@ -294,7 +382,25 @@ plot_ly(
 
 ### 📦 Total Portfolio Value Over Time
 
+This chart shows the total portfolio value over time with X-Axis for date and Y-Axis for value. User will be able to see fluctuations over time and the trend of their portfolio.
+
 ```{r}
+#| echo: false
+
+total_portfolio <- portfolio_tracking_all %>%
+  group_by(date) %>%
+  summarise(total_value = sum(holding_value), .groups = "drop")
+
+ggplot(total_portfolio, aes(x = date, y = total_value)) +
+  geom_line(color = "darkgreen", size = 1.2) +
+  labs(title = "Total Portfolio Value Over Time", y = "Value (USD)", x = "Date") +
+  scale_y_continuous(labels = scales::dollar)
+```
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 total_portfolio <- portfolio_tracking_all %>%
   group_by(date) %>%
   summarise(total_value = sum(holding_value), .groups = "drop")
@@ -312,13 +418,23 @@ ggplot(total_portfolio, aes(x = date, y = total_value)) +
 -   Return tracking since individual buy dates
 -   Portfolio-level return and value plots
 
-```{r}
-colnames(portfolio_tracking_all)
-```
-
 #### Stock Price Trend
 
+From this chart, user can observe performance trends, determining which holdings has the strongest growth. 
+
 ```{r}
+#| echo: false
+
+ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
+  geom_line() +
+  labs(title = "Adjusted Closing Price Over Time", y = "Adjusted Price", x = "Date")
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
   geom_line() +
   labs(title = "Adjusted Closing Price Over Time", y = "Adjusted Price", x = "Date")
@@ -326,7 +442,38 @@ ggplot(stock_data, aes(x = date, y = adjusted, color = symbol)) +
 
 #### Rolling
 
+20-Day rolling volatility chart is a powerful tool to evaluate risk and market behaviour over time. 
+Higher volatility has the biggest spikes. Frequent large price swings indicates possible speculative behaviour, earnings surprises or broader market sentiment.
+Higher volatility implies higher risk and reward potential.
+Low and stable volatility are typically in the 1-3% range. These stocks are less risky in terms of price fluctuations.
+
 ```{r}
+#| echo: false
+
+stock_data <- stock_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(
+    daily_return = adjusted / lag(adjusted) - 1,
+    rolling_vol_20 = rollapply(daily_return, width = 20, FUN = sd, fill = NA, align = "right")
+  ) %>%
+  ungroup()
+
+ggplot(stock_data %>% filter(!is.na(rolling_vol_20)), 
+       aes(x = date, y = rolling_vol_20, color = symbol)) +
+  geom_line(size = 1) +
+  labs(
+    title = "20-Day Rolling Volatility (Standard Deviation of Daily Returns)",
+    x = "Date",
+    y = "Rolling Volatility (Std Dev)"
+  ) +
+  scale_y_continuous(labels = scales::percent)
+```
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 stock_data <- stock_data %>%
   group_by(symbol) %>%
   arrange(date) %>%
@@ -347,21 +494,11 @@ ggplot(stock_data %>% filter(!is.na(rolling_vol_20)),
   scale_y_continuous(labels = scales::percent)
 ```
 
-Observations:
-
--   TSLA (Purple Line) shows the highest volatility overall. It fluctuates often and peaks above 6%, meaning high price swings daily.
-
--   MSFT (Green Line) is the least volatile, maintaining a very consistent low volatility around 1–2%, reflecting its status as a stable, mature stock.
-
--   NVDA (Cyan) and AMZN (Red) fluctuate in between — but note that NVDA has occasional sharp volatility spikes, likely due to earnings or news events.
-
--   Spikes in volatility (upward jumps) are usually tied to market news, economic events, earnings releases, or crashes/rallies.
-
--   Periods of low volatility indicate price stability or consolidation phases.
-
 ### Individual stock-level EDA
 
 #### Descriptive Statistics
+
+From descriptive statistics, user can understand the best and worst performing stock. 
 
 ```{r}
 portfolio_tracking_all %>%
@@ -390,7 +527,34 @@ max_return: Maximum return
 
 #### Cumulative Returns
 
+Each line represents the performance of a specific stock starting from the user's buy date. It give the user an answer on how much they have gain or loss from this specific investment over time.
+
 ```{r}
+#| echo: false
+
+portfolio_tracking_all <- portfolio_tracking_all %>%
+  arrange(stock, buy_date, date) %>%
+  group_by(position_id) %>%
+  mutate(
+    cumulative_return = cumprod(1 + coalesce(return_since_buy, 0))
+  ) %>%
+  ungroup()
+
+ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = position_id)) +
+  geom_line(size = 1) +
+  labs(
+    title = "Cumulative Return Since Buy Date (Per Buy-in)",
+    x = "Date",
+    y = "Cumulative Return"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 portfolio_tracking_all <- portfolio_tracking_all %>%
   arrange(stock, buy_date, date) %>%
   group_by(position_id) %>%
@@ -412,7 +576,49 @@ ggplot(portfolio_tracking_all, aes(x = date, y = return_since_buy, color = posit
 
 ### Correlation analysis
 
+Daily return correlation matrix reveals how similarly or differently the stocks move on a daily basis in terms of their returns.
+
 ```{r}
+#| echo: false
+
+# Ensure daily return is available (if not already calculated)
+stock_data <- stock_data %>%
+  group_by(symbol) %>%
+  arrange(date) %>%
+  mutate(daily_return = adjusted / lag(adjusted) - 1) %>%
+  ungroup()
+
+# Summarise to ensure one return per symbol-date (safety step)
+returns_clean <- stock_data %>%
+  group_by(date, symbol) %>%
+  summarise(daily_return = mean(daily_return, na.rm = TRUE), .groups = "drop")
+
+# Pivot wider
+returns_matrix <- returns_clean %>%
+  pivot_wider(names_from = symbol, values_from = daily_return)
+
+# Ensure numeric
+returns_matrix <- returns_matrix %>%
+  mutate(across(-date, as.numeric))
+
+# Compute correlation matrix
+returns_corr <- cor(returns_matrix %>% select(-date), use = "pairwise.complete.obs")
+
+# Plot
+corrplot(
+  returns_corr,
+  method = "color",
+  addCoef.col = "black",
+  number.cex = 0.8,
+  title = "Daily Return Correlation Matrix",
+  mar = c(0, 0, 2, 0)
+)
+```
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 # Ensure daily return is available (if not already calculated)
 stock_data <- stock_data %>%
   group_by(symbol) %>%
@@ -453,7 +659,44 @@ Observation:
 
 #### Return Vs Votality
 
+This is a Return vs Volatility scatter plot, a classic visualization of the risk-return tradeoff. It helps investors quickly assess which stocks offer better return for the level of risk they carry.
+
+Observations: 
+NVDA has the highest return and high volatility. It has great return-to-risk ratio if volatility is acceptable.
+TSLA is among the riskiest but has lower return than NVDA.
+MSFT and AAPL are great for conservative investors seeking stability. They have low volatility and low return.
+According to user's portfolio strategy, they can decide their next investment according to their current holdings.
+
 ```{r}
+#| echo: false
+
+# Step 1: Calculate mean return and volatility per stock
+return_volatility_stats <- stock_data %>%
+  group_by(symbol) %>%
+  summarise(
+    mean_return = mean(daily_return, na.rm = TRUE),
+    volatility = sd(daily_return, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Step 2: Plot the Risk–Return scatter plot
+ggplot(return_volatility_stats, aes(x = volatility, y = mean_return, label = symbol)) +
+  geom_point(size = 4, color = "darkblue") +
+  geom_text(nudge_y = 0.0005, fontface = "bold") +
+  labs(
+    title = "Return vs Volatility (Risk–Return Tradeoff)",
+    x = "Volatility (Standard Deviation of Daily Return)",
+    y = "Mean Daily Return"
+  ) +
+  scale_x_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+```
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
 # Step 1: Calculate mean return and volatility per stock
 return_volatility_stats <- stock_data %>%
   group_by(symbol) %>%
@@ -479,7 +722,11 @@ ggplot(return_volatility_stats, aes(x = volatility, y = mean_return, label = sym
 
 ### Distribution of Buy-in over the Years
 
+From this chart, users will be able to gain insights from trading activity trends by year. Some stocks may show seasonal trading volume spikes for example year-end or earnings-related boosts.
+
 ```{r}
+#| echo: false
+
 # Step 1: Filter past 5 years only
 volume_5yr <- stock_data %>%
   filter(date >= Sys.Date() %m-% years(5)) %>%
@@ -503,12 +750,42 @@ ggplot(volume_5yr, aes(x = month, y = total_volume, fill = factor(year))) +
   theme_minimal()
 ```
 
+```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+#| eval: false
+
+# Step 1: Filter past 5 years only
+volume_5yr <- stock_data %>%
+  filter(date >= Sys.Date() %m-% years(5)) %>%
+  mutate(
+    year = year(date),
+    month = month(date, label = TRUE)
+  ) %>%
+  group_by(symbol, year, month) %>%
+  summarise(total_volume = sum(volume, na.rm = TRUE), .groups = "drop")
+
+# Step 2: Plot barchart faceted by stock, grouped by year
+ggplot(volume_5yr, aes(x = month, y = total_volume, fill = factor(year))) +
+  geom_col(position = "dodge") +
+  facet_wrap(~ symbol, scales = "free_y") +
+  labs(
+    title = "📊 Monthly Trading Volume by Stock (Past 5 Years)",
+    x = "Month", y = "Total Volume",
+    fill = "Year"
+  ) +
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal()
+```
 
 ## Data Overview (CDA)
 
 ### 1. Wilcoxon Rank-Sum Test (Median Comparison)
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # Replace with user-defined stock selection
 stock_a <- "AMZN"
 stock_b <- "TSLA"
@@ -539,6 +816,9 @@ Observation:
 ### 2. F-Test for Variance Comparison
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 # 📌 Simulated user input (replace with input$stock1 / input$stock2 in Shiny later)
 stock1 <- "AMZN"
 stock2 <- "MSFT"
@@ -569,6 +849,9 @@ run_variance_test("AMZN", "MSFT")
 ### 3. Pearson Correlation Test (Relationship)
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 stock1 <- "AMZN"
 stock2 <- "MSFT"
 
@@ -607,6 +890,9 @@ run_correlation_test("AMZN", "MSFT")
 ### 4. Multiple Linear Regression: Return \~ Volume + Market Index
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 run_linear_regression <- function(target_stock, market_index_stock, data = stock_data) {
   # Step 1: Prepare dataset
   reg_data <- data %>%
@@ -647,6 +933,9 @@ run_linear_regression("AMZN", "MSFT")
 ### 5. ANOVA Test (One-way or Two-way)
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Click here to show the R code"
+
 run_anova_test <- function(data = stock_data) {
   anova_data <- data %>%
     select(symbol, daily_return) %>%
@@ -693,6 +982,7 @@ run_two_way_anova_test()
 ```
 
 ### 6. Event Study Analysis – Cumulative Abnormal Returns (CAR) during COVID (2020–2022)
+Cumulative Abnormal Return (CAR) analysis — a common method in event studies used to determine whether a stock's returns deviate significantly from expected (normal) performance during a specific period.
 
 ```{r}
 run_event_study <- function(target_stock = "NVDA",
