@@ -56,7 +56,6 @@ cda_ui <- function(id) {
                         plotOutput(ns("rolling_correlation_chart")),
                         verbatimTextOutput(ns("regression_summary")),
                         plotOutput(ns("regression_diagnostic_plot")),
-                        plotOutput(ns("regression_coef_plot")),
                         plotOutput(ns("return_density_plot")),
                         verbatimTextOutput(ns("anova1")),
                         verbatimTextOutput(ns("anova2")),
@@ -553,47 +552,3 @@ cda_server <- function(id) {
         ) +
         theme_minimal()
     })
-    
-    
-    
-    
-    plot_regression_coefficients <- function(target_stock, market_index_stock, data = stock_data) {
-      validate(
-        need(!is.null(rv$portfolio_tracking_all) && nrow(rv$portfolio_tracking_all) > 0, "No data yet. Please add stocks to view the chart.")
-      )
-      reg_data <- data %>%
-        filter(symbol %in% c(target_stock, market_index_stock)) %>%
-        select(date, symbol, daily_return, volume) %>%
-        pivot_wider(names_from = symbol, values_from = c(daily_return, volume)) %>%
-        rename(
-          target_return = paste0("daily_return_", target_stock),
-          target_volume = paste0("volume_", target_stock),
-          market_return = paste0("daily_return_", market_index_stock)
-        ) %>%
-        filter(!is.na(target_return), !is.na(target_volume), !is.na(market_return))
-      
-      if (nrow(reg_data) < 10) return(NULL)
-      
-      model <- lm(target_return ~ target_volume + market_return, data = reg_data)
-      coef_df <- broom::tidy(model)
-      
-      ggplot(coef_df, aes(x = term, y = estimate)) +
-        geom_point(size = 4, color = "darkorange") +
-        geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.2) +
-        geom_hline(yintercept = 0, linetype = "dashed") +
-        labs(
-          title = paste("📌 Regression Coefficients -", target_stock),
-          x = "Predictor",
-          y = "Estimate (Beta)"
-        ) +
-        theme_minimal()
-    }
-    
-    output$regression_coef_plot <- renderPlot({
-      validate(
-        need(!is.null(rv$portfolio_tracking_all) && nrow(rv$portfolio_tracking_all) > 0, "No data yet. Please add stocks to view the chart.")
-      )
-      plot_regression_coefficients(input$cda_stock1, input$cda_stock2, data = rv$stock_data)
-    })
-  })
-}
