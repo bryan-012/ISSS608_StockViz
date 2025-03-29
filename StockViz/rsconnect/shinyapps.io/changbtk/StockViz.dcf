@@ -5,7 +5,7 @@ account: changbtk
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14315525
-bundleId: 9989398
+bundleId: 10022504
 url: https://changbtk.shinyapps.io/StockViz/
 version: 1
 asMultiple: FALSE
