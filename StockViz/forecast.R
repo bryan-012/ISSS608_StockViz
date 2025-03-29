@@ -11,6 +11,7 @@ library(plotly)
 library(DT)
 library(rsample)
 library(tidyquant)
+library(ranger)
 
 # ---------- UI MODULE ----------
 forecast_ui <- function(id) {
