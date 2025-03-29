@@ -9,6 +9,7 @@ website:
           - href: index.qmd
             text: "🏠 Home"
           - text: "🔎 Overview "
+            href: "poster.pdf"
           - text: "📦 Archives"
             menu:
             - href: "Proposal/Proposal.html"
