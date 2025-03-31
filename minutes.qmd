@@ -70,3 +70,33 @@ Justin Lim Zheng Han
 • Finish our complete R Shiny for our own modules
 
 • Discuss on starting the poster and UI design
+
+------------------------------------------------------------------------
+
+# Meeting Minutes 3
+
+Mar 31, 2025
+
+20:00 – 21:00
+
+Virtual
+
+**Opening**
+
+This meeting was to finalize our app, align on what we have done individually, compile our work and finalize the poster.
+
+**Present**
+
+Bryan Tze Kin Chang
+
+Justin Lim Zheng Han
+
+**Agenda**
+
+-   We went through our compiled Shiny Application to make sure all features are working well.
+
+-    We went through our website to make sure that everything is published properly.
+
+-   We worked on the poster design and poster content, taking inspiration from Seniors work.
+
+-    We finalized most of our work and there are some minor touchups left to do such as exporting the poster in the required dimensions and linking the poster to netlify.
