@@ -282,6 +282,25 @@ cda_server <- function(id) {
           )
         )
     })
+    output$download_summary <- downloadHandler(
+      filename = function() {
+        paste0("portfolio_summary_", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        req(rv$portfolio_summary)
+        
+        # Prepare a clean version for CSV (remove formatted columns)
+        df <- rv$portfolio_summary %>%
+          select(
+            stock, buy_date, quantity, buy_price, buy_price_src,
+            day_low, day_high, price_out_of_range,
+            invested_amount, current_price, current_value,
+            unrealized_return, return_pct
+          )
+        
+        write.csv(df, file, row.names = FALSE)
+      }
+    )
     
     
     # ==== EDA Charts ====
