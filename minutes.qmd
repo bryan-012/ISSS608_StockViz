@@ -95,8 +95,8 @@ Justin Lim Zheng Han
 
 -   We went through our compiled Shiny Application to make sure all features are working well.
 
--    We went through our website to make sure that everything is published properly.
+-   We went through our website to make sure that everything is published properly.
 
 -   We worked on the poster design and poster content, taking inspiration from Seniors work.
 
--    We finalized most of our work and there are some minor touchups left to do such as exporting the poster in the required dimensions and linking the poster to netlify.
+-   We finalized most of our work and there are some minor touchups left to do such as exporting the poster in the required dimensions and linking the poster to netlify.
